@@ -2,16 +2,21 @@
 /node_modules
 /.pnp
 .pnp.js
+/transpass-pwa/node_modules
 
 # testing
 /coverage
+/transpass-pwa/coverage
 
 # next.js
 /.next/
 /out/
+/transpass-pwa/.next/
+/transpass-pwa/out/
 
 # production
 /build
+/transpass-pwa/build
 
 # misc
 .DS_Store
@@ -25,9 +30,12 @@ yarn-error.log*
 # local env files
 .env*.local
 .env
+/transpass-pwa/.env*.local
+/transpass-pwa/.env
 
 # vercel
 .vercel
+/transpass-pwa/.vercel
 
 # typescript
 *.tsbuildinfo
@@ -35,7 +43,10 @@ next-env.d.ts
 
 # firebase
 firebase-service-account.json
+/transpass-pwa/firebase-service-account.json
 
 # logs
 *.log
 ngrok_output.txt
+/transpass-pwa/*.log
+/transpass-pwa/ngrok_output.txt
