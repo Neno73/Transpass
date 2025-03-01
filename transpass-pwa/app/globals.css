@@ -1,0 +1,235 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Primary Colors */
+  --primary: #3D4EAD;
+  --primary-dark: #30429E;
+  --primary-light: #A3B1F6;
+  --primary-lightest: #F5F7FF;
+  --light-blue-1: #B4C7F2;
+  --blue-2: #7790ED;
+
+  /* Neutrals */
+  --white: #FFFFFF;
+  --light-gray: #F5F7FF;
+  --medium-gray: #B9C8CF;
+  --text-gray: #6B7280;
+  --dark-gray: #4F4E4C;
+  --dark-gray-2: #525149;
+  --darker-gray: #292621;
+
+  /* Semantic Colors */
+  --error: #FF0000;
+  --success: #3CB371;
+
+  /* Background & Foreground */
+  --background: #FFFFFF;
+  --foreground: #292621;
+
+  /* Spacing */
+  --spacing-2xs: 4px;
+  --spacing-xs: 8px;
+  --spacing-sm: 16px;
+  --spacing-md: 24px;
+  --spacing-lg: 32px;
+  --spacing-xl: 48px;
+  --spacing-2xl: 64px;
+}
+
+/* Keep light theme colors for dark mode preference */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #FFFFFF;
+    --foreground: #292621;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: 'Avenir Next LT Pro', 'Avenir LT Std', 'Avenir', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Component Styles */
+@layer components {
+  /* Buttons */
+  .btn-primary {
+    @apply bg-primary text-white rounded-full px-6 py-3 h-12 font-medium text-md;
+    @apply hover:bg-primary-dark transition-colors;
+    @apply disabled:opacity-60;
+  }
+
+  .btn-secondary {
+    @apply bg-transparent text-primary border border-primary rounded-full px-6 py-3 h-12 font-medium text-md;
+    @apply hover:bg-primary-lightest transition-colors;
+  }
+
+  .btn-text {
+    @apply bg-transparent text-primary px-4 py-2 font-medium text-md;
+    @apply hover:bg-primary-lightest transition-colors;
+  }
+
+  .btn-icon {
+    @apply bg-gray-200 text-gray-800 rounded-full w-10 h-10 flex items-center justify-center;
+    @apply hover:bg-primary-lightest hover:text-primary transition-colors;
+  }
+
+  /* Form Elements */
+  .form-input {
+    @apply h-12 border border-gray-300 rounded px-4 py-3 bg-white text-gray-800 w-full;
+    @apply focus:border-primary focus:outline-none;
+    @apply placeholder:text-gray-500;
+  }
+
+  .form-textarea {
+    @apply min-h-[150px] border border-gray-300 rounded px-4 py-3 bg-white text-gray-800 w-full;
+    @apply focus:border-primary focus:outline-none;
+    @apply placeholder:text-gray-500;
+  }
+
+  .form-label {
+    @apply text-md font-medium text-gray-800 mb-2 block;
+  }
+
+  .form-error {
+    @apply text-error text-sm mt-1;
+  }
+
+  .required-field::after {
+    content: '*';
+    @apply text-error ml-1;
+  }
+
+  /* Selection Pills */
+  .selection-pill {
+    @apply h-9 px-4 py-2 border border-gray-300 rounded-full bg-white text-gray-800 text-base;
+    @apply hover:bg-gray-200 transition-colors;
+  }
+
+  .selection-pill-active {
+    @apply bg-primary-light text-white border-0;
+  }
+
+  /* Cards */
+  .card {
+    @apply p-6 rounded bg-white border border-gray-300 shadow-card;
+  }
+
+  .panel-card {
+    @apply rounded bg-white border border-gray-300;
+  }
+
+  .panel-card-header {
+    @apply p-4;
+  }
+
+  .panel-card-content {
+    @apply p-4 bg-gray-100;
+  }
+
+  /* Progress Indicators */
+  .step-indicator-container {
+    @apply flex space-x-2 mb-6;
+  }
+
+  .step-indicator {
+    @apply h-1.5 rounded-full w-24;
+  }
+
+  .step-active {
+    @apply bg-primary;
+  }
+
+  .step-current {
+    @apply bg-primary-light;
+  }
+
+  .step-inactive {
+    @apply bg-primary-lightest;
+  }
+
+  /* Navigation */
+  .top-nav {
+    @apply h-[60px] bg-white border-b border-gray-300 flex items-center justify-center relative;
+  }
+
+  .bottom-nav {
+    @apply h-[56px] bg-white border-t border-gray-300 flex items-center justify-around;
+  }
+
+  .bottom-nav-item {
+    @apply flex flex-col items-center justify-center text-gray-500;
+  }
+
+  .bottom-nav-item-active {
+    @apply text-primary;
+  }
+
+  /* Accordions */
+  .accordion-header {
+    @apply p-4 flex justify-between items-center border border-gray-300 rounded;
+  }
+
+  .accordion-content {
+    @apply p-4 bg-gray-100 rounded-b;
+  }
+
+  /* Tabs */
+  .tab {
+    @apply h-12 px-4 text-gray-500;
+  }
+
+  .tab-active {
+    @apply border-b-2 border-primary text-primary;
+  }
+
+  /* Alerts */
+  .alert-success {
+    @apply p-4 rounded bg-success bg-opacity-10 border border-success;
+  }
+
+  .alert-error {
+    @apply p-4 rounded bg-error bg-opacity-10 border border-error;
+  }
+
+  .alert-info {
+    @apply p-4 rounded bg-primary bg-opacity-10 border border-primary;
+  }
+}
+
+/* Layout Utilities */
+.content-container {
+  @apply max-w-[414px] mx-auto px-6;
+}
+
+.section-spacing {
+  @apply my-8;
+}
+
+.form-field-spacing {
+  @apply mb-6;
+}
+
+/* QR Scanner styling */
+#reader {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+#reader video {
+  border-radius: 8px;
+}
+
+/* Hide QR Scanner elements we don't want to see */
+#reader__dashboard_section_swaplink {
+  display: none !important;
+}
+
+#reader__status_span {
+  font-size: 14px;
+  color: #6B7280;
+}
