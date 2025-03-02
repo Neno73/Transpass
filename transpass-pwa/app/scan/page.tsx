@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { Button } from '../../components/ui/Button';
+import { TopNav, BottomNav } from '../../components/ui/Navigation';
 import { getProduct, logProductScan } from '../../lib/products';
 import AuthProtection from '../../components/AuthProtection';
 import { useAuth } from '../../lib/AuthContext';
@@ -124,8 +125,9 @@ export default function ScanPage() {
 
   return (
     <AuthProtection userOnly>
-      <div className="min-h-screen bg-primary-lightest flex flex-col">
-        <header className="p-4 flex items-center justify-between">
+      <div className="min-h-screen bg-primary-lightest flex flex-col pb-20">
+        {/* Desktop header */}
+        <header className="p-4 flex items-center justify-between md:block hidden">
           <Link href="/" className="inline-flex items-center">
             <svg width="40" height="40" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
               <rect width="60" height="60" rx="8" fill="#3D4EAD" fillOpacity="0.2"/>
@@ -148,112 +150,123 @@ export default function ScanPage() {
           </Link>
         </header>
 
-      <main className="flex-grow flex flex-col items-center justify-center p-4">
-        <div className="bg-white p-6 rounded-xl shadow-md max-w-md w-full">
-          <h1 className="text-2xl font-bold text-center text-gray-dark mb-6">
-            Scan Product QR Code
-          </h1>
-          
-          {scanning ? (
-            <div className="space-y-6">
-              <div className="bg-primary-lightest p-4 rounded-lg text-center text-gray mb-4">
-                Position the QR code within the frame to scan
-              </div>
-              
-              <div className="scanner-container mx-auto w-full max-w-sm">
-                {/* QR Scanner */}
-                <QRScanner onScanSuccess={handleScanSuccess} />
-              </div>
-              
-              <div className="text-center text-sm text-gray">
-                <p>Scanning for product QR code...</p>
-                <p className="mt-2">Make sure the QR code is well-lit and clearly visible</p>
-                <div className="mt-4 bg-blue-50 p-3 rounded-lg text-blue-600 text-left">
-                  <h4 className="font-medium">How to scan:</h4>
-                  <ol className="list-decimal pl-5 mt-1 text-sm">
-                    <li>Allow camera access when prompted</li>
-                    <li>Position the QR code within the frame</li>
-                    <li>Hold your device steady</li>
-                    <li>The scan will happen automatically</li>
-                    <li>Make sure the QR code is properly lit</li>
-                  </ol>
+        {/* Mobile header */}
+        <div className="md:hidden">
+          <TopNav 
+            title="Scan QR Code"
+          />
+        </div>
+
+        <main className="flex-grow flex flex-col items-center justify-center p-4">
+          <div className="bg-white p-6 rounded-xl shadow-md max-w-md w-full">
+            <h1 className="text-xl md:text-2xl font-bold text-center text-gray-dark mb-6 hidden md:block">
+              Scan Product QR Code
+            </h1>
+            
+            {scanning ? (
+              <div className="space-y-6">
+                <div className="bg-primary-lightest p-4 rounded-lg text-center text-gray mb-4">
+                  Position the QR code within the frame to scan
+                </div>
+                
+                <div className="scanner-container mx-auto w-full max-w-sm">
+                  {/* QR Scanner */}
+                  <QRScanner onScanSuccess={handleScanSuccess} />
+                </div>
+                
+                <div className="text-center text-sm text-gray">
+                  <p>Scanning for product QR code...</p>
+                  <p className="mt-2">Make sure the QR code is well-lit and clearly visible</p>
+                  <div className="mt-4 bg-blue-50 p-3 rounded-lg text-blue-600 text-left">
+                    <h4 className="font-medium">How to scan:</h4>
+                    <ol className="list-decimal pl-5 mt-1 text-sm">
+                      <li>Allow camera access when prompted</li>
+                      <li>Position the QR code within the frame</li>
+                      <li>Hold your device steady</li>
+                      <li>The scan will happen automatically</li>
+                    </ol>
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {validatingResult ? (
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 border-4 border-primary-light border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
-                  <p className="text-gray">Validating QR code...</p>
-                </div>
-              ) : validProduct === true ? (
-                <>
-                  <div className="bg-green-50 p-4 rounded-lg text-center text-green-800 mb-4">
-                    <svg className="mx-auto h-12 w-12 text-green-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <p>Valid product QR code detected!</p>
+            ) : (
+              <div className="space-y-6">
+                {validatingResult ? (
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 border-4 border-primary-light border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray">Validating QR code...</p>
                   </div>
-                  
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-sm font-medium text-gray-dark">Product ID:</p>
-                    <p className="text-gray break-all">{productId}</p>
-                  </div>
-                  
-                  <div className="flex flex-col space-y-4">
-                    {scanError && (
-                      <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-800 text-sm">
-                        {scanError}
-                      </div>
-                    )}
+                ) : validProduct === true ? (
+                  <>
+                    <div className="bg-green-50 p-4 rounded-lg text-center text-green-800 mb-4">
+                      <svg className="mx-auto h-12 w-12 text-green-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <p>Valid product QR code detected!</p>
+                    </div>
                     
-                    <Button 
-                      className="w-full" 
-                      onClick={handleViewProduct}
-                      disabled={loggingHistory}
-                    >
-                      {loggingHistory ? 'Logging scan...' : 'View Product Details'}
-                    </Button>
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <p className="text-sm font-medium text-gray-dark">Product ID:</p>
+                      <p className="text-gray break-all">{productId}</p>
+                    </div>
+                    
+                    <div className="flex flex-col space-y-4">
+                      {scanError && (
+                        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-800 text-sm">
+                          {scanError}
+                        </div>
+                      )}
+                      
+                      <Button 
+                        className="w-full" 
+                        onClick={handleViewProduct}
+                        disabled={loggingHistory}
+                      >
+                        {loggingHistory ? 'Logging scan...' : 'View Product Details'}
+                      </Button>
+                      
+                      <Button variant="outline" className="w-full" onClick={handleTryAgain}>
+                        Scan Another QR Code
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="bg-red-50 p-4 rounded-lg text-center text-red-800 mb-4">
+                      <svg className="mx-auto h-12 w-12 text-red-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      <p>Invalid product QR code</p>
+                    </div>
+                    
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <p className="text-sm font-medium text-gray-dark">The scanned QR code is not a valid Transpass product:</p>
+                      <p className="text-gray break-all mt-2">{scanResult}</p>
+                    </div>
                     
                     <Button variant="outline" className="w-full" onClick={handleTryAgain}>
-                      Scan Another QR Code
+                      Try Again
                     </Button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="bg-red-50 p-4 rounded-lg text-center text-red-800 mb-4">
-                    <svg className="mx-auto h-12 w-12 text-red-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    <p>Invalid product QR code</p>
-                  </div>
-                  
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-sm font-medium text-gray-dark">The scanned QR code is not a valid Transpass product:</p>
-                    <p className="text-gray break-all mt-2">{scanResult}</p>
-                  </div>
-                  
-                  <Button variant="outline" className="w-full" onClick={handleTryAgain}>
-                    Try Again
-                  </Button>
-                </>
-              )}
-            </div>
-          )}
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </main>
+        
+        <footer className="p-4 text-center text-sm text-gray hidden md:block">
+          <p>
+            Don't have a QR code to scan? Check out our{' '}
+            <Link href="/demo" className="text-primary hover:underline">
+              demo products
+            </Link>
+          </p>
+        </footer>
+
+        {/* Bottom Navigation - Mobile only */}
+        <div className="md:hidden">
+          <BottomNav userType="user" />
         </div>
-      </main>
-      
-      <footer className="p-4 text-center text-sm text-gray">
-        <p>
-          Don't have a QR code to scan? Check out our{' '}
-          <Link href="/demo" className="text-primary hover:underline">
-            demo products
-          </Link>
-        </p>
-      </footer>
-    </div>
+      </div>
     </AuthProtection>
   );
 }

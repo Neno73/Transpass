@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '../../../components/ui/Button';
+import { TopNav, BottomNav } from '../../../components/ui/Navigation';
 import { getUserProducts, Product } from '../../../lib/products';
 import { useAuth } from '../../../lib/AuthContext';
 import AuthProtection from '../../../components/AuthProtection';
+import { Menu, User, RefreshCw } from 'lucide-react';
 
 export default function ProductsListPage() {
   return (
@@ -22,6 +24,7 @@ function ProductsList() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState('all');
   const [networkError, setNetworkError] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   // Function to check network status and update state
   const checkNetworkStatus = () => {
@@ -120,9 +123,24 @@ function ProductsList() {
     return matchesSearch;
   });
 
+  const refreshProducts = () => {
+    console.log('Manually refreshing product list');
+    setLoading(true);
+    if (user?.uid) {
+      getUserProducts(user.uid)
+        .then(fetchedProducts => {
+          console.log('Products refreshed:', fetchedProducts);
+          setProducts(fetchedProducts);
+        })
+        .catch(err => console.error('Refresh error:', err))
+        .finally(() => setLoading(false));
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-primary-lightest">
-      <header className="bg-white shadow-sm">
+    <div className="min-h-screen bg-primary-lightest pb-20">
+      {/* Desktop header */}
+      <header className="bg-white shadow-sm hidden md:block">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex">
@@ -157,26 +175,16 @@ function ProductsList() {
                   Products
                 </Link>
                 <Link
-                  href="/scan"
+                  href="/company/analytics"
                   className="border-transparent text-gray hover:text-gray-dark hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
                 >
-                  <svg 
-                    className="mr-1 h-4 w-4" 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                    <path d="M8 7v4h4V7H8z"></path>
-                    <path d="M12 7v4h4V7h-4z"></path>
-                    <path d="M8 11v4h4v-4H8z"></path>
-                    <path d="M12 11v4h4v-4h-4z"></path>
-                  </svg>
-                  Scan
+                  Analytics
+                </Link>
+                <Link
+                  href="/company/profile"
+                  className="border-transparent text-gray hover:text-gray-dark hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                >
+                  Profile
                 </Link>
               </nav>
             </div>
@@ -184,20 +192,9 @@ function ProductsList() {
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={() => {
-                  console.log('Manually refreshing product list');
-                  setLoading(true);
-                  if (user?.uid) {
-                    getUserProducts(user.uid)
-                      .then(fetchedProducts => {
-                        console.log('Products refreshed:', fetchedProducts);
-                        setProducts(fetchedProducts);
-                      })
-                      .catch(err => console.error('Refresh error:', err))
-                      .finally(() => setLoading(false));
-                  }
-                }}
+                onClick={refreshProducts}
               >
+                <RefreshCw size={16} className="mr-2" />
                 Refresh Products
               </Button>
             </div>
@@ -205,18 +202,53 @@ function ProductsList() {
         </div>
       </header>
 
-      <main className="py-10">
-        <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+      {/* Mobile header */}
+      <div className="md:hidden">
+        <TopNav 
+          title="Products" 
+          rightAction={
+            <div className="flex items-center space-x-2">
+              <button 
+                onClick={refreshProducts}
+                className="flex items-center justify-center w-8 h-8 rounded-full focus:outline-none"
+                aria-label="Refresh products"
+              >
+                <RefreshCw size={18} />
+              </button>
+              <button 
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="flex items-center justify-center w-8 h-8 rounded-full focus:outline-none"
+              >
+                <Menu size={20} />
+              </button>
+            </div>
+          } 
+        />
+        
+        {mobileMenuOpen && (
+          <div className="bg-white shadow-md py-2 px-4 absolute right-0 mt-2 z-50 rounded-md">
+            <Link href="/company/profile" className="block py-2 text-sm text-gray-dark">
+              My Profile
+            </Link>
+            <Link href="/company/products/qrcodes" className="block py-2 text-sm text-gray-dark">
+              QR Codes
+            </Link>
+          </div>
+        )}
+      </div>
+
+      <main className="py-4 md:py-10 px-4">
+        <div className="max-w-7xl mx-auto">
           {/* Page header */}
-          <div className="px-4 sm:px-0 mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-dark">Products</h1>
+              <h1 className="text-xl md:text-2xl font-bold text-gray-dark hidden md:block">Products</h1>
               <p className="mt-1 text-sm text-gray">
                 Manage your product catalog and digital product passports
               </p>
             </div>
-            <div className="mt-4 sm:mt-0 flex flex-col sm:flex-row gap-3">
-              <Link href="/company/products/qrcodes">
+            <div className="mt-4 md:mt-0 flex flex-col sm:flex-row gap-3">
+              <Link href="/company/products/qrcodes" className="hidden md:block">
                 <Button variant="outline" className="flex items-center w-full sm:w-auto justify-center">
                   <svg 
                     className="-ml-1 mr-2 h-5 w-5" 
@@ -237,7 +269,7 @@ function ProductsList() {
                   QR Codes
                 </Button>
               </Link>
-              <Link href="/company/products/create">
+              <Link href="/company/products/create" className="hidden md:block">
                 <Button className="flex items-center w-full sm:w-auto justify-center">
                   <svg
                     className="-ml-1 mr-2 h-5 w-5"
@@ -258,7 +290,7 @@ function ProductsList() {
           </div>
 
           {/* Search and filters */}
-          <div className="px-4 sm:px-0 mb-6">
+          <div className="mb-6">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative rounded-md shadow-sm">
@@ -313,7 +345,7 @@ function ProductsList() {
               <div className="w-12 h-12 border-4 border-primary-light border-t-primary rounded-full animate-spin"></div>
             </div>
           ) : products.length === 0 ? (
-            <div className="bg-white p-6 text-center border border-gray-300 border-dashed rounded-lg">
+            <div className="bg-white p-6 text-center border border-gray-300 border-dashed rounded-lg mb-16">
               <svg className="mx-auto h-12 w-12 text-gray" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
               </svg>
@@ -328,7 +360,7 @@ function ProductsList() {
               </div>
             </div>
           ) : filteredProducts.length === 0 ? (
-            <div className="bg-white p-6 text-center border border-gray-300 rounded-lg">
+            <div className="bg-white p-6 text-center border border-gray-300 rounded-lg mb-16">
               <svg className="mx-auto h-12 w-12 text-gray" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -341,7 +373,7 @@ function ProductsList() {
               </div>
             </div>
           ) : (
-            <div className="bg-white shadow overflow-hidden sm:rounded-md">
+            <div className="bg-white shadow overflow-hidden rounded-md mb-16">
               <ul className="divide-y divide-gray-200">
                 {filteredProducts.map((product) => (
                   <li key={product.id}>
@@ -384,7 +416,7 @@ function ProductsList() {
                           </div>
                         </div>
                         <div className="ml-5 flex-shrink-0 flex items-center space-x-4">
-                          <span className="flex items-center text-sm text-gray">
+                          <span className="hidden sm:flex items-center text-sm text-gray">
                             <svg className="flex-shrink-0 mr-1.5 h-5 w-5 text-primary" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                               <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                               <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
@@ -404,6 +436,11 @@ function ProductsList() {
           )}
         </div>
       </main>
+
+      {/* Bottom Navigation - Mobile only */}
+      <div className="md:hidden">
+        <BottomNav userType="company" />
+      </div>
     </div>
   );
 }
