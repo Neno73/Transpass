@@ -2,6 +2,8 @@
 
 TransPass is a Progressive Web Application (PWA) for creating and managing digital product passports. It enables companies to register their products and generate QR codes that consumers can scan to access detailed product information, including components, certifications, and sustainability data.
 
+[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?logo=vercel)](https://claude-transpass.vercel.app/)
+
 ## Important Setup Requirements
 
 Before running the application, you need to install the following additional dependencies:
