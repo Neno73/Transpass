@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '../../../../components/ui/Button';
 import { SuccessScreen } from '../../../../components/SuccessScreen';
 import { generateAndStoreQRCode } from '../../../../lib/qrcode';
 
-export default function ProductSuccessPage() {
+// Client component that uses search params
+function SuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const productId = searchParams.get('id');
@@ -95,5 +96,24 @@ export default function ProductSuccessPage() {
         </Link>
       </div>
     </SuccessScreen>
+  );
+}
+
+// Main page component with Suspense
+export default function ProductSuccessPage() {
+  return (
+    <Suspense fallback={
+      <SuccessScreen>
+        <div className="bg-white p-4 rounded-lg shadow-md mb-8 w-64 h-64 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+        <div className="w-full space-y-4">
+          <div className="w-full h-12 bg-gray-200 animate-pulse rounded-full"></div>
+          <div className="w-full h-12 bg-gray-200 animate-pulse rounded-full"></div>
+        </div>
+      </SuccessScreen>
+    }>
+      <SuccessContent />
+    </Suspense>
   );
 }

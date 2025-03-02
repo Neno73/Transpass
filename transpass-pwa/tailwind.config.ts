@@ -119,6 +119,5 @@ export default {
     require('@tailwindcss/forms')({
       strategy: 'class',
     }),
-    require('@tailwindcss/line-clamp'),
   ],
 } satisfies Config;

@@ -111,6 +111,12 @@ export default function CompanyProfile() {
                     Products
                   </Link>
                   <Link
+                    href="/company/analytics"
+                    className="border-transparent text-gray hover:text-gray-dark hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                  >
+                    Analytics
+                  </Link>
+                  <Link
                     href="/company/profile"
                     className="border-b-2 border-primary text-primary inline-flex items-center px-1 pt-1 text-sm font-medium"
                   >

@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "buildCommand": "npm run build:vercel",
+  "devCommand": "npm run dev",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "installCommand": "npm install",
+  "git": {
+    "deploymentEnabled": {
+      "master": true
+    }
+  },
+  "ignoreCommand": "echo \"Skipping linting and type checking\"",
+  "env": {
+    "VERCEL_ENV": "production",
+    "NODE_ENV": "production",
+    "NEXT_TELEMETRY_DISABLED": "1"
+  }
+}
