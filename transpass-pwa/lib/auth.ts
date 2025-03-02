@@ -95,6 +95,7 @@ export const updateUserProfile = async (
     displayName?: string;
     companyName?: string;
     photoURL?: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
   }
 ) => {

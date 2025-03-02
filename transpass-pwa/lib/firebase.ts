@@ -108,6 +108,7 @@ export const connectWithRetry = async (maxRetries = 5, initialDelay = 2000) => {
             createdAt: Date.now()
           });
         }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (docError) {
         // If getting the document failed, try to create it
         await setDoc(testRef, {
@@ -119,6 +120,7 @@ export const connectWithRetry = async (maxRetries = 5, initialDelay = 2000) => {
       
       console.log('Connected to Firestore successfully');
       return true;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       // Log detailed error information
       console.log(`Connection attempt ${attempt} failed: ${error.message || error}`);
@@ -127,7 +129,8 @@ export const connectWithRetry = async (maxRetries = 5, initialDelay = 2000) => {
       if (attempt === maxRetries) {
         console.error('Max retries reached. Firestore connection failed.');
         // Provide more detailed diagnostics
-        if (error.code === 'failed-precondition' || error.message.includes('offline')) {
+        if (error.code === 'failed-precondition' || 
+            (typeof error.message === 'string' && error.message.includes('offline'))) {
           console.error('Network appears to be offline or unreliable');
         } else if (error.code === 'permission-denied') {
           console.error('Firebase security rules may be blocking access');
