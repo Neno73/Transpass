@@ -23,9 +23,14 @@ const nextConfig: NextConfig = {
     // Warning: This allows production builds to successfully complete even if
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
+  },
+  // Added for debugging deployment issues
+  experimental: {
+    // Empty for now
   }
 };
 
+// Simplified PWA config
 const pwaConfig = withPWA({
   dest: 'public',
   register: true,
