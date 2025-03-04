@@ -3,12 +3,12 @@ const { getFirestore, collection, addDoc, getDocs, doc, getDoc } = require('fire
 
 // Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyBJ_036GDtfufZG4WUSjw6wa3lDhaKFb5g",
-  authDomain: "q-project-97c6f.firebaseapp.com",
-  projectId: "q-project-97c6f",
-  storageBucket: "q-project-97c6f.firebasestorage.app",
-  messagingSenderId: "1047562197624",
-  appId: "1:1047562197624:web:516b930ead757f4b7deb8d",
+  apiKey: "your-firebase-api-key",
+  authDomain: "your-project-id.firebaseapp.com",
+  projectId: "your-project-id",
+  storageBucket: "your-project-id.firebasestorage.app",
+  messagingSenderId: "your-messaging-sender-id",
+  appId: "your-app-id",
   measurementId: "G-T84C9N4EG2"
 };
 

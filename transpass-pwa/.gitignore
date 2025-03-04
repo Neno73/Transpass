@@ -52,3 +52,19 @@ serviceAccount*.json
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Environment variables and credentials
+.env
+.env.*
+.env.local
+.env.development
+.env.test
+.env.production
+firebase-service-account*.json
+*-service-account*.json
+*.backup
+
+# Firebase 
+firebase-debug.log
+firebase-debug.*.log
+ui-debug.log

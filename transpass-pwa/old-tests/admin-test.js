@@ -13,7 +13,7 @@ const admin = require('firebase-admin');
 // Initialize Firebase Admin (without credentials - this assumes you're authenticated via gcloud)
 try {
   admin.initializeApp({
-    projectId: 'q-project-97c6f'
+    projectId: 'your-project-id'
   });
 
   console.log("Firebase Admin initialized successfully");

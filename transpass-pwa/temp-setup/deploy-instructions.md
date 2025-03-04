@@ -15,14 +15,16 @@
 Add the following environment variables in the Vercel dashboard (Settings > Environment Variables):
 
 ```
-NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyBJ_036GDtfufZG4WUSjw6wa3lDhaKFb5g
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=q-project-97c6f.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=q-project-97c6f
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=q-project-97c6f.appspot.com
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=1047562197624
-NEXT_PUBLIC_FIREBASE_APP_ID=1:1047562197624:web:516b930ead757f4b7deb8d
-NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-T84C9N4EG2
+NEXT_PUBLIC_FIREBASE_API_KEY=your-firebase-api-key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project-id.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project-id.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your-messaging-sender-id
+NEXT_PUBLIC_FIREBASE_APP_ID=your-app-id
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your-measurement-id
 ```
+
+> Important: Replace these placeholder values with your actual Firebase configuration.
 
 ## Step 3: Set up Firebase Admin SDK
 
@@ -33,9 +35,9 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-T84C9N4EG2
 
 2. Add the following environment variable containing the entire service account JSON:
    ```
-   FIREBASE_SERVICE_ACCOUNT_KEY={"type":"service_account","project_id":"q-project-97c6f",...}
+   FIREBASE_SERVICE_ACCOUNT_KEY={"type":"service_account","project_id":"your-project-id",...}
    ```
-   (Copy the entire JSON content into this variable)
+   (Copy the entire JSON content from your service account key file into this variable)
 
 ## Step 4: Deploy
 
