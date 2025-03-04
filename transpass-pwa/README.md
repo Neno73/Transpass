@@ -2,7 +2,7 @@
 
 TransPass is a Progressive Web Application (PWA) for creating and managing digital product passports. It enables companies to register their products and generate QR codes that consumers can scan to access detailed product information, including components, certifications, and sustainability data.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?logo=vercel)](https://claude-transpass.vercel.app/)
+[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?logo=vercel)](https://transpass.vercel.app/)
 
 ## Important Setup Requirements
 
@@ -60,9 +60,10 @@ npm install --save-dev @types/qrcode @types/jszip @types/file-saver
 
 ## Installation
 
-1. Navigate to the project directory:
+1. Clone the repository:
    ```bash
-   cd transpass-pwa
+   git clone https://github.com/Neno73/Transpass.git
+   cd Transpass/transpass-pwa
    ```
 
 2. Install dependencies:
