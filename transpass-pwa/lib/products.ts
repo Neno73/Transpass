@@ -481,6 +481,20 @@ export const createProduct = async (productData: Product, imageFile?: File, imag
       console.warn("No image file provided for product creation");
     }
     
+    // Check if we have components with documents to upload
+    if (productData.components && productData.components.length > 0) {
+      console.log(`Processing ${productData.components.length} components for documents`);
+      
+      // Enforce component limit
+      if (productData.components.length > 8) {
+        throw new Error('Maximum 8 components allowed per product');
+      }
+      
+      // No actual document upload happens - this is a placeholder
+      // In a real implementation, we would process any document files here
+      // But this fix simply enforces the component limit
+    }
+    
     console.log("Adding product to Firestore with image URL:", imageUrl);
     
     // Add the product to Firestore
