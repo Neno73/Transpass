@@ -1,5 +1,30 @@
 # TransPass PWA Project Documentation
 
+## Project Structure
+
+The TransPass PWA project is organized as follows:
+
+- `app/`: Next.js app directory with page components
+  - `auth/`: Authentication pages (login, register)
+  - `company/`: Company dashboard and product management 
+  - `user/`: User dashboard and profile
+  - `scan/`: QR code scanner
+  - `p/`: Product public pages
+
+- `components/`: Reusable UI components
+  - `ui/`: Core UI components (buttons, forms, etc.)
+  - `landing/`: Landing page sections
+  - Other specific component groups
+
+- `lib/`: Core functionality and services
+  - Firebase configuration and utilities
+  - Authentication context and helpers
+  - Product and QR code utilities
+
+- `public/`: Static assets and resources
+  - Images, icons, and other assets
+  - Manifest file for PWA functionality
+
 ## Database Schema
 
 The TransPass PWA uses Firebase Firestore with the following collections:
