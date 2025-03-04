@@ -10,7 +10,6 @@
       "master": true
     }
   },
-  "ignoreCommand": "echo \"Skipping linting and type checking\"",
   "env": {
     "VERCEL_ENV": "production",
     "NODE_ENV": "production",
