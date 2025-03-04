@@ -60,9 +60,8 @@ npm install --save-dev @types/qrcode @types/jszip @types/file-saver
 
 ## Installation
 
-1. Clone the repository:
+1. Navigate to the project directory:
    ```bash
-   git clone https://github.com/your-username/transpass-pwa.git
    cd transpass-pwa
    ```
 
