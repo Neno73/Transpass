@@ -23,15 +23,17 @@ This document guides you through setting up your Vercel deployment for Transpass
 In the Vercel dashboard, go to your project settings → Environment Variables and add:
 
 ```
-NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyBJ_036GDtfufZG4WUSjw6wa3lDhaKFb5g
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=q-project-97c6f.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=q-project-97c6f
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=q-project-97c6f.appspot.com
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=1047562197624
-NEXT_PUBLIC_FIREBASE_APP_ID=1:1047562197624:web:516b930ead757f4b7deb8d
-NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-T84C9N4EG2
-NEXT_PUBLIC_BASE_URL=https://transpass.vercel.app
+NEXT_PUBLIC_FIREBASE_API_KEY=your-firebase-api-key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project-id.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project-id.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your-messaging-sender-id
+NEXT_PUBLIC_FIREBASE_APP_ID=your-app-id
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your-measurement-id
+NEXT_PUBLIC_BASE_URL=https://your-vercel-app-url.vercel.app
 ```
+
+> Important: Replace the placeholder values above with your actual Firebase configuration values. Never commit these values to your repository.
 
 ## Step 3: Add Firebase Admin Service Account
 
