@@ -132,6 +132,13 @@ export default function LoginPage() {
     } catch (err: any) {
       console.error("Password reset error:", err);
       
+      // Detailed logging to help debug the issue
+      console.log("Password reset error details:", {
+        code: err.code,
+        message: err.message,
+        fullError: err
+      });
+      
       // Handle specific Firebase auth errors for password reset
       if (err.code === 'auth/invalid-email') {
         setError('Please enter a valid email address.');
@@ -139,6 +146,10 @@ export default function LoginPage() {
         // For security reasons, we still show success message even if email doesn't exist
         setIsResetSent(true);
         setError('');
+      } else if (err.code === 'auth/invalid-api-key' || err.code === 'auth/api-key-expired') {
+        setError('There is an issue with the authentication service. Please contact support.');
+      } else if (err.code === 'auth/network-request-failed') {
+        setError('Network error. Please check your internet connection and try again.');
       } else {
         setError(err.message || 'Failed to send password reset email. Please try again.');
       }

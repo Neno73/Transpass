@@ -67,18 +67,20 @@ export const signOut = async (): Promise<void> => {
 // Request password reset email
 export const resetPassword = async (email: string): Promise<void> => {
   try {
-    // Define action code settings with custom redirect URL
+    // Use the default Firebase password reset flow
+    // This will use Firebase's default handling which is more reliable
+    return await sendPasswordResetEmail(auth, email);
+    
+    // NOTE: If you want to use custom URLs in the future, uncomment this code:
+    /*
     const actionCodeSettings = {
-      // URL you want to redirect back to. The domain (www.example.com) for this
-      // URL must be in the authorized domains list in the Firebase Console.
       url: typeof window !== 'undefined' 
         ? `${window.location.origin}/auth/reset-password` 
         : 'https://transpass.vercel.app/auth/reset-password',
-      // This must be true
       handleCodeInApp: true
     };
-    
     return await sendPasswordResetEmail(auth, email, actionCodeSettings);
+    */
   } catch (error) {
     console.error("Error requesting password reset:", error);
     throw error;
