@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { Button } from '../../../components/ui/Button';
 import AuthProtection from '../../../components/AuthProtection';
 import { useAuth } from '../../../lib/AuthContext';
 import { getCompanyScanAnalytics } from '../../../lib/products';
+import { ProductComponentInfo } from '../../../lib/products';
 
 interface ChartDataPoint {
   date: string;
@@ -27,6 +28,18 @@ interface ScanHistoryRecord {
   imageUrl?: string;
 }
 
+interface ComponentAnalytic {
+  material: string;
+  totalWeight: number;
+  count: number;
+  recyclableCount: number;
+  recyclablePercentage: number;
+}
+
+interface MaterialSummary {
+  [material: string]: ComponentAnalytic;
+}
+
 export default function CompanyAnalytics() {
   const { user, userData } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
@@ -42,6 +55,7 @@ export default function CompanyAnalytics() {
     timeSeriesData: []
   });
   const [timeRange, setTimeRange] = useState<'7' | '14' | '30'>('14');
+  const [componentsData, setComponentsData] = useState<{[productId: string]: ProductComponentInfo[]}>({});
 
   useEffect(() => {
     const fetchAnalytics = async () => {
@@ -50,6 +64,20 @@ export default function CompanyAnalytics() {
         try {
           const data = await getCompanyScanAnalytics(user.uid);
           setAnalyticsData(data);
+          
+          // Extract component data from all products returned
+          const productComponentsData: {[productId: string]: ProductComponentInfo[]} = {};
+          
+          // Use the products data directly from the analytics response
+          if (data.products && data.products.length > 0) {
+            data.products.forEach(product => {
+              if (product.id && product.components && product.components.length > 0) {
+                productComponentsData[product.id] = product.components;
+              }
+            });
+          }
+          
+          setComponentsData(productComponentsData);
         } catch (error) {
           console.error('Error fetching analytics:', error);
         } finally {
@@ -75,6 +103,47 @@ export default function CompanyAnalytics() {
       // Add percentage for bar height
       percentage: Math.round((point.count / maxCount) * 100)
     }));
+    
+  // Calculate component analytics data
+  const componentAnalytics = useMemo(() => {
+    const materialSummary: MaterialSummary = {};
+    
+    // Process all components across all products
+    Object.values(componentsData).forEach(components => {
+      components.forEach(component => {
+        const material = component.material || 'Unknown';
+        const weight = component.weight || 0;
+        const isRecyclable = component.recyclable || false;
+        
+        if (!materialSummary[material]) {
+          materialSummary[material] = {
+            material,
+            totalWeight: 0,
+            count: 0,
+            recyclableCount: 0,
+            recyclablePercentage: 0
+          };
+        }
+        
+        materialSummary[material].totalWeight += weight;
+        materialSummary[material].count++;
+        
+        if (isRecyclable) {
+          materialSummary[material].recyclableCount++;
+        }
+      });
+    });
+    
+    // Calculate recyclable percentages
+    Object.values(materialSummary).forEach(summary => {
+      summary.recyclablePercentage = summary.count > 0 
+        ? Math.round((summary.recyclableCount / summary.count) * 100) 
+        : 0;
+    });
+    
+    // Convert to array and sort by total weight
+    return Object.values(materialSummary).sort((a, b) => b.totalWeight - a.totalWeight);
+  }, [componentsData]);
 
   // Format date for display
   const formatDate = (dateString: string) => {
@@ -321,6 +390,128 @@ export default function CompanyAnalytics() {
                         </tbody>
                       </table>
                     </div>
+                  )}
+                </div>
+
+                {/* Component Analytics Section */}
+                <div className="mt-8 bg-white shadow rounded-lg px-4 py-5 sm:p-6">
+                  <h2 className="text-lg font-medium text-gray-dark mb-4">Component Analytics</h2>
+                  
+                  {componentAnalytics.length === 0 ? (
+                    <p className="text-gray text-sm">No component data available. Add components to your products to see analytics.</p>
+                  ) : (
+                    <>
+                      {/* Materials and weight summary */}
+                      <div className="mb-6">
+                        <h3 className="text-md font-medium text-gray-dark mb-2">Materials Summary</h3>
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full divide-y divide-gray-200">
+                            <thead>
+                              <tr>
+                                <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  Material
+                                </th>
+                                <th className="px-6 py-3 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  Components
+                                </th>
+                                <th className="px-6 py-3 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  Total Weight (g)
+                                </th>
+                                <th className="px-6 py-3 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  % Recyclable
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                              {componentAnalytics.map((material, index) => (
+                                <tr key={material.material} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    {material.material}
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                                    {material.count}
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                                    {material.totalWeight.toFixed(2)}
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
+                                    <span 
+                                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                        material.recyclablePercentage >= 75 ? 'bg-green-100 text-green-800' : 
+                                        material.recyclablePercentage >= 40 ? 'bg-yellow-100 text-yellow-800' : 
+                                        'bg-red-100 text-red-800'
+                                      }`}
+                                    >
+                                      {material.recyclablePercentage}%
+                                    </span>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                      
+                      {/* Sustainability metrics */}
+                      <div className="mt-6">
+                        <h3 className="text-md font-medium text-gray-dark mb-4">Sustainability Metrics</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          {/* Total recyclable percentage */}
+                          <div className="bg-primary-lightest rounded-lg p-4">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0">
+                                <svg className="h-8 w-8 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                              </div>
+                              <div className="ml-4">
+                                <h4 className="text-sm font-medium text-gray-dark">Recyclable Components</h4>
+                                <div className="mt-1 text-2xl font-semibold text-primary">
+                                  {Math.round(
+                                    (componentAnalytics.reduce((sum, mat) => sum + mat.recyclableCount, 0) /
+                                    componentAnalytics.reduce((sum, mat) => sum + mat.count, 0)) * 100
+                                  )}%
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Total components count */}
+                          <div className="bg-primary-lightest rounded-lg p-4">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0">
+                                <svg className="h-8 w-8 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                              </div>
+                              <div className="ml-4">
+                                <h4 className="text-sm font-medium text-gray-dark">Total Components</h4>
+                                <div className="mt-1 text-2xl font-semibold text-primary">
+                                  {componentAnalytics.reduce((sum, mat) => sum + mat.count, 0)}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Total weight */}
+                          <div className="bg-primary-lightest rounded-lg p-4">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0">
+                                <svg className="h-8 w-8 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                                </svg>
+                              </div>
+                              <div className="ml-4">
+                                <h4 className="text-sm font-medium text-gray-dark">Total Weight</h4>
+                                <div className="mt-1 text-2xl font-semibold text-primary">
+                                  {componentAnalytics.reduce((sum, mat) => sum + mat.totalWeight, 0).toFixed(2)}g
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </>
                   )}
                 </div>
 
