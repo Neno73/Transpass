@@ -391,7 +391,8 @@ export const getCompanyScanAnalytics = async (companyId: string) => {
       totalScans: scanHistory.length,
       productAnalytics,
       recentScans: scanHistory.slice(0, 10), // Just the 10 most recent scans
-      timeSeriesData
+      timeSeriesData,
+      products // Include full product data for component analytics
     };
   } catch (error) {
     console.error("Error fetching company scan analytics:", error);
@@ -399,7 +400,8 @@ export const getCompanyScanAnalytics = async (companyId: string) => {
       totalScans: 0,
       productAnalytics: [],
       recentScans: [],
-      timeSeriesData: []
+      timeSeriesData: [],
+      products: []
     };
   }
 };
