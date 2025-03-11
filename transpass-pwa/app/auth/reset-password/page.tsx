@@ -1,13 +1,47 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '../../../components/ui/Button';
 import { auth } from '../../../lib/firebase';
 import { verifyPasswordResetCode, confirmPasswordReset } from 'firebase/auth';
 
-export default function ResetPasswordPage() {
+// Loading component to display while the main component is loading
+function ResetPasswordLoading() {
+  return (
+    <div className="min-h-screen bg-primary-lightest flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="text-center">
+          <Link href="/" className="inline-flex items-center">
+            <svg width="40" height="40" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="60" height="60" rx="8" fill="#3D4EAD" fillOpacity="0.2"/>
+              <circle cx="12" cy="12" r="6" fill="#3D4EAD"/>
+              <circle cx="30" cy="12" r="6" fill="#3D4EAD"/>
+              <circle cx="48" cy="12" r="6" fill="#3D4EAD"/>
+              <circle cx="12" cy="30" r="6" fill="#3D4EAD"/>
+              <circle cx="30" cy="30" r="6" fill="#FFFFFF"/>
+              <circle cx="48" cy="30" r="6" fill="#3D4EAD"/>
+              <circle cx="12" cy="48" r="6" fill="#3D4EAD"/>
+              <circle cx="30" cy="48" r="6" fill="#3D4EAD"/>
+              <circle cx="48" cy="48" r="6" fill="#3D4EAD"/>
+            </svg>
+            <span className="ml-2 text-xl font-bold text-primary">Transpass</span>
+          </Link>
+        </div>
+        <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-dark">
+          Loading...
+        </h2>
+        <p className="mt-2 text-center text-sm text-gray">
+          Please wait while we prepare the password reset form.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// Main component with Suspense boundary
+function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [newPassword, setNewPassword] = useState('');
@@ -292,5 +326,14 @@ export default function ResetPasswordPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Wrap the reset password content component with Suspense
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<ResetPasswordLoading />}>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }
