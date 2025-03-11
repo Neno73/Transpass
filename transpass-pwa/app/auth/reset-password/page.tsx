@@ -54,13 +54,15 @@ function ResetPasswordContent() {
   const [email, setEmail] = useState<string | null>(null);
 
   useEffect(() => {
-    // Get the action code (oobCode) from the URL
-    const oobCode = searchParams.get('oobCode');
-    const mode = searchParams.get('mode');
+    // Get the action code (oobCode) from the URL - check all possible parameter names
+    const oobCode = searchParams.get('oobCode') || searchParams.get('actionCode') || searchParams.get('code');
+    const mode = searchParams.get('mode') || 'resetPassword'; // Default to resetPassword mode
+    
+    console.log("URL params:", {oobCode, mode, allParams: Object.fromEntries([...searchParams.entries()])});
     
     // Check if this is a password reset request
-    if (mode !== 'resetPassword' || !oobCode) {
-      setError('Invalid password reset link');
+    if (!oobCode) {
+      setError('Missing reset code. Please make sure you used the complete link from your email.');
       setIsLoading(false);
       return;
     }
@@ -70,6 +72,7 @@ function ResetPasswordContent() {
     // Verify the action code
     verifyPasswordResetCode(auth, oobCode)
       .then((email) => {
+        console.log("Email verification successful:", email);
         setEmail(email);
         setIsValid(true);
         setIsLoading(false);
@@ -81,7 +84,7 @@ function ResetPasswordContent() {
         } else if (err.code === 'auth/invalid-action-code') {
           setError('Your password reset link is invalid or has already been used.');
         } else {
-          setError('There was a problem with your password reset link. Please try again.');
+          setError(`There was a problem with your password reset link: ${err.message}. Please try again.`);
         }
         setIsLoading(false);
       });
