@@ -1,1 +1,2 @@
 # This file is used to trigger a new deployment
+# Updated Firebase auth domain to transpass.io - 2025-03-20
