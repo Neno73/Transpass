@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "../../../components/ui/Button";
-import { signIn, resetPassword } from "../../../lib/auth";
-import { auth, getUserData } from "../../../lib/firebase";
+import { signIn, resetPassword, getUserData } from "../../../lib/auth";
+import { auth } from "../../../lib/firebase";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 
 export default function LoginPage() {
@@ -183,14 +183,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-white flex flex-col justify-center py-12 px-12">
       <div className="flex flex-col items-center justify-center mb-4">
         <Image src="/logo.svg" alt="Transpass" width={80} height={80} />
         <h2 className="text-3xl mt-2 font-bold text-primary">TransPass</h2>
       </div>
 
-      <div className="mt-4 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 sm:rounded-lg sm:px-10">
+      <div className="mt-4">
+        <div>
           {/* Google Sign In Button */}
 
           {isResetSent ? (

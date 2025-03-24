@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "../../../components/ui/Button";
-import { registerUser } from "../../../lib/auth";
-import { auth, getUserData } from "../../../lib/firebase";
+import { registerUser, getUserData } from "../../../lib/auth";
+import { auth } from "../../../lib/firebase";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 
 export default function RegisterPage() {
