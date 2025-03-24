@@ -9,7 +9,9 @@ import { useAuth } from "../../../lib/AuthContext";
 import { signOut } from "../../../lib/auth";
 import { useRouter } from "next/navigation";
 import { getUserProducts, Product } from "../../../lib/products";
-import { Menu, User } from "lucide-react";
+import { Menu, User, Settings } from "lucide-react";
+import Image from "next/image";
+import { ProductCard } from "../../../components/ui/ProductCard";
 
 // Example recent activity data
 const recentActivities = [
@@ -118,119 +120,23 @@ export default function CompanyDashboard() {
   //  Testa
   return (
     <AuthProtection companyOnly>
-      <div className="min-h-screen bg-primary-lightest pb-20">
-        {/* Desktop header */}
-        <header className="bg-white shadow-sm hidden md:block">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
-              <div className="flex">
-                <div className="flex-shrink-0 flex items-center">
-                  <Link href="/" className="inline-flex items-center">
-                    <svg
-                      width="32"
-                      height="32"
-                      viewBox="0 0 60 60"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <rect
-                        width="60"
-                        height="60"
-                        rx="8"
-                        fill="#3D4EAD"
-                        fillOpacity="0.2"
-                      />
-                      <circle cx="12" cy="12" r="6" fill="#3D4EAD" />
-                      <circle cx="30" cy="12" r="6" fill="#3D4EAD" />
-                      <circle cx="48" cy="12" r="6" fill="#3D4EAD" />
-                      <circle cx="12" cy="30" r="6" fill="#3D4EAD" />
-                      <circle cx="30" cy="30" r="6" fill="#FFFFFF" />
-                      <circle cx="48" cy="30" r="6" fill="#3D4EAD" />
-                      <circle cx="12" cy="48" r="6" fill="#3D4EAD" />
-                      <circle cx="30" cy="48" r="6" fill="#3D4EAD" />
-                      <circle cx="48" cy="48" r="6" fill="#3D4EAD" />
-                    </svg>
-                    <span className="ml-2 text-xl font-bold text-primary">
-                      Transpass
-                    </span>
-                  </Link>
-                </div>
-                <nav className="ml-6 flex space-x-8">
-                  <Link
-                    href="/company/dashboard"
-                    className="border-b-2 border-primary text-primary inline-flex items-center px-1 pt-1 text-sm font-medium"
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    href="/company/products"
-                    className="border-transparent text-gray hover:text-gray-dark hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                  >
-                    Products
-                  </Link>
-                  <Link
-                    href="/company/analytics"
-                    className="border-transparent text-gray hover:text-gray-dark hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                  >
-                    Analytics
-                  </Link>
-                  <Link
-                    href="/company/profile"
-                    className="border-transparent text-gray hover:text-gray-dark hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                  >
-                    Profile
-                  </Link>
-                </nav>
-              </div>
-              <div className="flex items-center">
-                <div className="ml-3 relative flex items-center space-x-4">
-                  <div className="text-sm font-medium text-gray-dark">
-                    {userData?.companyName ||
-                      userData?.displayName ||
-                      "Company"}
-                  </div>
-                  <div className="h-8 w-8 rounded-full bg-primary-lightest flex items-center justify-center text-primary font-medium">
-                    {userData?.companyName
-                      ? userData.companyName.charAt(0)
-                      : "C"}
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleSignOut}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Signing out..." : "Sign out"}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
-
+      <div className="min-h-screen bg-primary-lightest pb-20 p-2">
+        <Image
+          src="/logo-bg.png"
+          alt="logo background"
+          width={1000}
+          height={1000}
+          className="absolute top-0 left-0 z-0"
+        />
         {/* Mobile header */}
-        <div className="md:hidden">
-          <TopNav
-            title="Dashboard"
-            rightAction={
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="flex items-center justify-center w-8 h-8 rounded-full focus:outline-none"
-                >
-                  <Menu size={20} />
-                </button>
-                <Link href="/company/profile">
-                  <div className="h-8 w-8 rounded-full bg-primary-lightest flex items-center justify-center text-primary">
-                    <User size={18} />
-                  </div>
-                </Link>
-              </div>
-            }
+        <div className="p-4 mt-4">
+          <Settings
+            className="cursor-pointer relative ml-auto"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           />
 
           {mobileMenuOpen && (
-            <div className="bg-white shadow-md py-2 px-4 absolute right-0 mt-2 z-50 rounded-md">
+            <div className="bg-white shadow-md py-2 px-4 absolute right-4 mt-2 z-50 rounded-md">
               <Link
                 href="/company/profile"
                 className="block py-2 text-sm text-gray-dark"
@@ -249,451 +155,329 @@ export default function CompanyDashboard() {
         </div>
 
         <main className="py-4 md:py-10 px-4">
+          {/* User greeting with avatar - BIGGER VERSION */}
+          <div className="flex items-center my-8 mb-12 z-10 relative">
+            <div className="h-20 w-20 rounded-full bg-primary-light flex items-center justify-center text-white font-medium text-2xl shadow-md">
+              {user?.email?.charAt(0).toUpperCase() || "U"}
+            </div>
+            <div className="ml-4">
+              <p className="text-gray text-lg">Hello,</p>
+              <p className="text-gray-dark font-semibold text-2xl">
+                {user?.displayName || user?.email?.split("@")[0] || "User"}
+              </p>
+            </div>
+          </div>
+
+          <Button className="z-10 relative w-full my-8 mb-12">
+            Create product
+          </Button>
+
           <div className="max-w-7xl mx-auto">
-            {/* Page header */}
-            <div className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
-              <div>
-                <h1 className="text-xl md:text-2xl font-bold text-gray-dark">
-                  Dashboard
-                </h1>
-                <p className="mt-1 text-sm text-gray">
-                  Welcome back to your company dashboard! Manage your products
-                  and view analytics here.
+            {/* Recent products or Empty state */}
+            <div className="mt-8 relative z-10">
+              <div className="text-lg font-medium text-gray-dark mb-4 flex justify-between">
+                <p>
+                  My Products{" "}
+                  <span className="text-primary ml-1">({products.length})</span>
                 </p>
-              </div>
-              <div className="mt-4 md:mt-0 hidden md:block">
-                <Link href="/company/products/create">
-                  <Button className="flex items-center">
-                    <svg
-                      className="-ml-1 mr-2 h-5 w-5"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 3a1 1 0 00-1 1v5H4a1 1 0 100 2h5v5a1 1 0 102 0v-5h5a1 1 0 100-2h-5V4a1 1 0 00-1-1z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    Add New Product
-                  </Button>
+
+                <Link
+                  href="/company/products"
+                  className="text-primary text-right"
+                >
+                  View all
                 </Link>
               </div>
+
+              {loading ? (
+                <div className="py-12 px-6 flex justify-center">
+                  <div className="w-12 h-12 border-4 border-primary-light border-t-primary rounded-full animate-spin"></div>
+                </div>
+              ) : products.length > 0 ? (
+                <div className="grid grid-cols-2 gap-6 ">
+                  {products.slice(0, 4).map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      showStats={true}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white py-12 px-6 text-center rounded-lg shadow">
+                  <svg
+                    className="mx-auto h-12 w-12 text-gray-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1}
+                      d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                    />
+                  </svg>
+                  <h3 className="mt-2 text-sm font-medium text-gray-dark">
+                    No products yet
+                  </h3>
+                  <p className="mt-1 text-sm text-gray">
+                    Get started by creating your first product.
+                  </p>
+                  <div className="mt-6">
+                    <Link href="/company/products/create">
+                      <Button size="sm" className="inline-flex items-center">
+                        <svg
+                          className="-ml-1 mr-2 h-5 w-5"
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M10 3a1 1 0 00-1 1v5H4a1 1 0 100 2h5v5a1 1 0 102 0v-5h5a1 1 0 100-2h-5V4a1 1 0 00-1-1z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        Create a product
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Stats */}
-            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="px-4 py-5 sm:p-6">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray truncate">
-                      Total Products
-                    </dt>
-                    <dd className="mt-1 text-3xl font-semibold text-gray-dark">
-                      {loading ? "..." : products.length}
-                    </dd>
-                  </dl>
-                </div>
-                <div className="bg-primary-lightest px-4 py-4 sm:px-6">
-                  <div className="text-sm">
-                    <Link
-                      href="/company/products"
-                      className="font-medium text-primary hover:text-primary-dark"
-                    >
-                      View all products
-                    </Link>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="px-4 py-5 sm:p-6">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray truncate">
-                      Total Scans
-                    </dt>
-                    <dd className="mt-1 text-3xl font-semibold text-gray-dark">
-                      1,284
-                    </dd>
-                  </dl>
-                </div>
-                <div className="bg-primary-lightest px-4 py-4 sm:px-6">
-                  <div className="text-sm">
-                    <Link
-                      href="/company/analytics"
-                      className="font-medium text-primary hover:text-primary-dark"
-                    >
-                      View analytics
-                    </Link>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="px-4 py-5 sm:p-6">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray truncate">
-                      Recent Activity
-                    </dt>
-                    <dd className="mt-1 text-3xl font-semibold text-gray-dark">
-                      {recentActivities.length}
-                    </dd>
-                  </dl>
-                </div>
-                <div className="bg-primary-lightest px-4 py-4 sm:px-6">
-                  <div className="text-sm">
-                    <Link
-                      href="/company/analytics"
-                      className="font-medium text-primary hover:text-primary-dark"
-                    >
-                      View activity
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Recent products or Empty state */}
-            <div className="mt-8">
-              <h2 className="text-lg font-medium text-gray-dark mb-4">
-                Recent Products
-              </h2>
-              <div className="bg-white shadow overflow-hidden rounded-md">
-                {loading ? (
-                  <div className="py-12 px-6 flex justify-center">
-                    <div className="w-12 h-12 border-4 border-primary-light border-t-primary rounded-full animate-spin"></div>
-                  </div>
-                ) : products.length > 0 ? (
-                  <ul className="divide-y divide-gray-200">
-                    {products.slice(0, 3).map((product) => (
-                      <li key={product.id}>
-                        <div className="px-4 py-4 sm:px-6 flex items-center">
-                          <div className="min-w-0 flex-1 flex items-center">
-                            <div className="flex-shrink-0 h-12 w-12 bg-primary-lightest rounded-md flex items-center justify-center">
-                              {product.imageUrl ? (
-                                <img
-                                  src={product.imageUrl}
-                                  alt={product.name}
-                                  className="h-full w-full object-cover"
-                                />
-                              ) : (
-                                <span className="text-primary font-medium">
-                                  {product.name.charAt(0)}
-                                </span>
-                              )}
-                            </div>
-                            <div className="min-w-0 flex-1 px-4">
-                              <div>
-                                <p className="text-sm font-medium text-primary truncate">
-                                  {product.name}
-                                </p>
-                                <p className="mt-1 flex items-center text-sm text-gray">
-                                  <span className="truncate">
-                                    {product.model || "No model"}
-                                  </span>
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="ml-5 flex-shrink-0 flex items-center space-x-4">
-                            <span className="hidden sm:flex items-center text-sm text-gray">
-                              <svg
-                                className="flex-shrink-0 mr-1.5 h-5 w-5 text-primary"
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 20 20"
-                                fill="currentColor"
-                              >
-                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                                <path
-                                  fillRule="evenodd"
-                                  d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                                  clipRule="evenodd"
-                                />
-                              </svg>
-                              {Math.floor(Math.random() * 500)} scans
-                            </span>
-                            <Link href={`/company/products/${product.id}`}>
-                              <Button variant="outline" className="text-sm">
-                                Edit
-                              </Button>
-                            </Link>
-                          </div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <div className="py-12 px-6 text-center">
+            {/* Stats - Circular Design with Primary Background */}
+            <div className="mt-8 grid grid-cols-1 gap-6 relative z-10">
+              {/* Total Scans */}
+              <div className="bg-primary rounded-3xl overflow-hidden shadow-md transition-all duration-200 hover:shadow-lg">
+                <div className="p-6 flex items-center">
+                  <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mr-4 shadow-sm">
                     <svg
-                      className="mx-auto h-12 w-12 text-gray-300"
+                      className="h-8 w-8 text-primary"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-medium text-white opacity-90">
+                      Total Scans
+                    </h3>
+                    <p className="mt-1 text-3xl font-semibold text-white">
+                      1,284
+                    </p>
+                  </div>
+                </div>
+                <div className="px-6 py-3 bg-primary-dark">
+                  <Link
+                    href="/company/analytics"
+                    className="text-sm font-medium text-white flex items-center"
+                  >
+                    View analytics
+                    <svg
+                      className="ml-1 h-4 w-4"
+                      fill="none"
                       viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
+                      stroke="currentColor"
                     >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        strokeWidth={1}
-                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
                       />
                     </svg>
-                    <h3 className="mt-2 text-sm font-medium text-gray-dark">
-                      No products yet
+                  </Link>
+                </div>
+              </div>
+
+              {/* Recent Activity */}
+              <div className="bg-primary rounded-3xl overflow-hidden shadow-md transition-all duration-200 hover:shadow-lg">
+                <div className="p-6 flex items-center">
+                  <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mr-4 shadow-sm">
+                    <svg
+                      className="h-8 w-8 text-blue-2"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M12 20v-6M6 20V10M18 20V4" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-medium text-white opacity-90">
+                      Recent Activity
                     </h3>
-                    <p className="mt-1 text-sm text-gray">
-                      Get started by creating your first product.
+                    <p className="mt-1 text-3xl font-semibold text-white">
+                      {recentActivities.length}
                     </p>
-                    <div className="mt-6">
-                      <Link href="/company/products/create">
-                        <Button size="sm" className="inline-flex items-center">
+                    <div className="mt-1 flex items-center text-xs text-white opacity-90">
+                      <svg
+                        className="mr-1 h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      <span>
+                        Last activity {formatTimeAgo(recentActivities[0]?.date)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="px-6 py-3 bg-primary-dark">
+                  <Link
+                    href="/company/analytics"
+                    className="text-sm font-medium text-white flex items-center"
+                  >
+                    View activity
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Activity - Redesigned */}
+            <div className="mt-8 mb-16">
+              <h2 className="text-lg font-medium text-gray-dark mb-4">
+                Recent Activity
+              </h2>
+              <div className="bg-white shadow-sm rounded-2xl overflow-hidden">
+                <ul className="divide-y divide-gray-100">
+                  {recentActivities.map((activity) => (
+                    <li
+                      key={activity.id}
+                      className="hover:bg-primary-lightest transition-colors duration-200"
+                    >
+                      <div className="px-6 py-4 flex items-center">
+                        <div className="flex-shrink-0">
+                          <div className="h-10 w-10 rounded-full bg-primary-light flex items-center justify-center text-white">
+                            {activity.type === "product_created" && (
+                              <svg
+                                className="h-5 w-5"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                                />
+                              </svg>
+                            )}
+                            {activity.type === "product_scanned" && (
+                              <svg
+                                className="h-5 w-5"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
+                                />
+                              </svg>
+                            )}
+                            {activity.type === "component_added" && (
+                              <svg
+                                className="h-5 w-5"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M17 14v6m-3-3h6M6 10h2a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2zm10 0h2a2 2 0 002-2V6a2 2 0 00-2-2h-2a2 2 0 00-2 2v2a2 2 0 002 2zM6 20h2a2 2 0 002-2v-2a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2z"
+                                />
+                              </svg>
+                            )}
+                          </div>
+                        </div>
+                        <div className="ml-4 flex-1">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium text-gray-dark">
+                              {activity.type === "product_created" &&
+                                "Product Created"}
+                              {activity.type === "product_scanned" &&
+                                "Product Scanned"}
+                              {activity.type === "component_added" &&
+                                "Component Added"}
+                            </p>
+                            <p className="text-xs text-gray">
+                              {formatTimeAgo(activity.date)}
+                            </p>
+                          </div>
+                          <p className="text-sm text-primary mt-1">
+                            {activity.productName}
+                            {activity.componentName &&
+                              ` • ${activity.componentName}`}
+                          </p>
+                        </div>
+                        <div className="ml-4">
                           <svg
-                            className="-ml-1 mr-2 h-5 w-5"
+                            className="h-5 w-5 text-gray"
                             xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 0 20 20"
                             fill="currentColor"
                           >
                             <path
                               fillRule="evenodd"
-                              d="M10 3a1 1 0 00-1 1v5H4a1 1 0 100 2h5v5a1 1 0 102 0v-5h5a1 1 0 100-2h-5V4a1 1 0 00-1-1z"
+                              d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
                               clipRule="evenodd"
                             />
                           </svg>
-                          Create a product
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                )}
-              </div>
-              {products.length > 0 && (
-                <div className="mt-4 text-center">
-                  <Link
-                    href="/company/products"
-                    className="text-primary hover:text-primary-dark text-sm font-medium"
-                  >
-                    View all products →
-                  </Link>
-                </div>
-              )}
-            </div>
-
-            {/* Recent Activity */}
-            <div className="mt-8 mb-16">
-              <h2 className="text-lg font-medium text-gray-dark mb-4">
-                Recent Activity
-              </h2>
-              <div className="bg-white shadow overflow-hidden rounded-md">
-                <ul className="divide-y divide-gray-200">
-                  {recentActivities.map((activity) => (
-                    <li key={activity.id}>
-                      <div className="px-4 py-4 sm:px-6">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary-lightest flex items-center justify-center">
-                              {activity.type === "product_created" && (
-                                <svg
-                                  className="h-4 w-4 text-primary"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                                  />
-                                </svg>
-                              )}
-                              {activity.type === "product_scanned" && (
-                                <svg
-                                  className="h-4 w-4 text-primary"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-                                  />
-                                </svg>
-                              )}
-                              {activity.type === "component_added" && (
-                                <svg
-                                  className="h-4 w-4 text-primary"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M17 14v6m-3-3h6M6 10h2a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2zm10 0h2a2 2 0 002-2V6a2 2 0 00-2-2h-2a2 2 0 00-2 2v2a2 2 0 002 2zM6 20h2a2 2 0 002-2v-2a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2z"
-                                  />
-                                </svg>
-                              )}
-                            </div>
-                            <div className="ml-3">
-                              <p className="text-sm font-medium text-gray-dark">
-                                {activity.type === "product_created" &&
-                                  "Product Created"}
-                                {activity.type === "product_scanned" &&
-                                  "Product Scanned"}
-                                {activity.type === "component_added" &&
-                                  "Component Added"}
-                              </p>
-                              <p className="text-sm text-gray">
-                                {activity.type === "product_created" &&
-                                  `Created ${activity.productName}`}
-                                {activity.type === "product_scanned" &&
-                                  `Someone scanned ${activity.productName}`}
-                                {activity.type === "component_added" &&
-                                  `Added ${activity.componentName} to ${activity.productName}`}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="ml-2 flex-shrink-0 flex">
-                            <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary-lightest text-primary">
-                              {formatTimeAgo(activity.date)}
-                            </p>
-                          </div>
                         </div>
                       </div>
                     </li>
                   ))}
                 </ul>
-              </div>
-            </div>
-
-            {/* Quick actions - Only show on desktop */}
-            <div className="mt-8 hidden md:block">
-              <h2 className="text-lg font-medium text-gray-dark mb-4">
-                Quick Actions
-              </h2>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <div className="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-primary">
-                  <div className="flex-shrink-0">
-                    <div className="h-10 w-10 rounded-full bg-primary-lightest flex items-center justify-center">
-                      <svg
-                        className="h-6 w-6 text-primary"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <Link
-                      href="/company/products/create"
-                      className="focus:outline-none"
+                <div className="bg-primary-lightest px-6 py-3 text-center">
+                  <Link
+                    href="/company/analytics"
+                    className="text-sm font-medium text-primary inline-flex items-center"
+                  >
+                    View all activity
+                    <svg
+                      className="ml-1 h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
                     >
-                      <span className="absolute inset-0" aria-hidden="true" />
-                      <p className="text-sm font-medium text-gray-dark">
-                        Create New Product
-                      </p>
-                      <p className="text-sm text-gray truncate">
-                        Add a new product to your catalog
-                      </p>
-                    </Link>
-                  </div>
-                </div>
-
-                <div className="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-primary">
-                  <div className="flex-shrink-0">
-                    <div className="h-10 w-10 rounded-full bg-primary-lightest flex items-center justify-center">
-                      <svg
-                        className="h-6 w-6 text-primary"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <Link
-                      href="/company/analytics"
-                      className="focus:outline-none"
-                    >
-                      <span className="absolute inset-0" aria-hidden="true" />
-                      <p className="text-sm font-medium text-gray-dark">
-                        View Analytics
-                      </p>
-                      <p className="text-sm text-gray truncate">
-                        See how your products are performing
-                      </p>
-                    </Link>
-                  </div>
-                </div>
-
-                <div className="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-primary">
-                  <div className="flex-shrink-0">
-                    <div className="h-10 w-10 rounded-full bg-primary-lightest flex items-center justify-center">
-                      <svg
-                        className="h-6 w-6 text-primary"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <Link
-                      href="/company/profile"
-                      className="focus:outline-none"
-                    >
-                      <span className="absolute inset-0" aria-hidden="true" />
-                      <p className="text-sm font-medium text-gray-dark">
-                        Company Profile
-                      </p>
-                      <p className="text-sm text-gray truncate">
-                        Update your company information
-                      </p>
-                    </Link>
-                  </div>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -701,7 +485,7 @@ export default function CompanyDashboard() {
         </main>
 
         {/* Bottom Navigation - Mobile only */}
-        <div className="md:hidden">
+        <div>
           <BottomNav userType="company" />
         </div>
       </div>

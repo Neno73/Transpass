@@ -4,28 +4,28 @@
 
 :root {
   /* Primary Colors */
-  --primary: #3D4EAD;
-  --primary-dark: #30429E;
-  --primary-light: #A3B1F6;
-  --primary-lightest: #F5F7FF;
-  --light-blue-1: #B4C7F2;
-  --blue-2: #7790ED;
+  --primary: #3d4ead;
+  --primary-dark: #30429e;
+  --primary-light: #a3b1f6;
+  --primary-lightest: #f5f4f0;
+  --light-blue-1: #b4c7f2;
+  --blue-2: #7790ed;
 
   /* Neutrals */
-  --white: #FFFFFF;
-  --light-gray: #F5F7FF;
-  --medium-gray: #B9C8CF;
-  --text-gray: #6B7280;
-  --dark-gray: #4F4E4C;
+  --white: #ffffff;
+  --light-gray: #f5f7ff;
+  --medium-gray: #b9c8cf;
+  --text-gray: #6b7280;
+  --dark-gray: #4f4e4c;
   --dark-gray-2: #525149;
   --darker-gray: #292621;
 
   /* Semantic Colors */
-  --error: #FF0000;
-  --success: #3CB371;
+  --error: #ff0000;
+  --success: #3cb371;
 
   /* Background & Foreground */
-  --background: #FFFFFF;
+  --background: #ffffff;
   --foreground: #292621;
 
   /* Spacing */
@@ -41,7 +41,7 @@
 /* Keep light theme colors for dark mode preference */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #FFFFFF;
+    --background: #ffffff;
     --foreground: #292621;
   }
 }
@@ -49,7 +49,7 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: 'Avenir Next LT Pro', 'Avenir LT Std', 'Avenir', sans-serif;
+  font-family: "Avenir Next LT Pro", "Avenir LT Std", "Avenir", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -100,7 +100,7 @@ body {
   }
 
   .required-field::after {
-    content: '*';
+    content: "*";
     @apply text-error ml-1;
   }
 
@@ -231,5 +231,5 @@ body {
 
 #reader__status_span {
   font-size: 14px;
-  color: #6B7280;
+  color: #6b7280;
 }

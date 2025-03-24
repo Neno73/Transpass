@@ -34,6 +34,9 @@ const nextConfig: NextConfig = {
   server: {
     port: 4000,
   },
+  images: {
+    domains: ["firebasestorage.googleapis.com"],
+  },
 };
 
 // Simplified PWA config
