@@ -452,7 +452,10 @@ export const createProduct = async (productData: Product, imageFile?: File, imag
             // If we have direct image data, use that instead
             if (imageData) {
               console.log("Using provided ArrayBuffer data for upload");
-              uploadResult = await uploadBytes(storageRef, new Uint8Array(imageData), metadata);
+
+              // Create a new Blob from the ArrayBuffer with the correct content type
+              const blob = new Blob([new Uint8Array(imageData)], { type: imageFile.type });
+              uploadResult = await uploadBytes(storageRef, blob, metadata);
             } else {
               console.log("Using image File object for upload");
               uploadResult = await uploadBytes(storageRef, imageFile, metadata);
