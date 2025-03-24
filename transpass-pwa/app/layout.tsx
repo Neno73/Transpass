@@ -15,7 +15,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Transpass - Digital Product Passport",
-  description: "A digital passport for products, providing transparency about materials, components and manufacturing.",
+  description:
+    "A digital passport for products, providing transparency about materials, components and manufacturing.",
   manifest: "/manifest.json",
 };
 
@@ -28,14 +29,17 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta name="theme-color" content="#3D4EAD" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-primary-lightest`}
       >
-        <Providers>
-          {children}
-        </Providers>
+        <div className="max-w-[500px] mx-auto">
+          <Providers>{children}</Providers>
+        </div>
       </body>
     </html>
   );
