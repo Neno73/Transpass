@@ -1,51 +1,80 @@
-import React from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import FeaturePills from './FeaturePills';
-import ProductShowcase from './ProductShowcase';
+import React from "react";
+import Link from "next/link";
+import Image from "next/image";
 
 export const HeroSection = () => {
   return (
-    <section id="hero" className="relative overflow-hidden py-16 md:py-24">
-      {/* Background decorative elements */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
-        <div className="absolute -left-[300px] -top-[200px] w-[900px] h-[900px] rounded-full bg-blue-100 opacity-10"></div>
-        <div className="absolute right-[10%] top-[10%] w-[600px] h-[600px] rounded-full bg-gradient-to-br from-light-blue to-accent-blue opacity-20 blur-3xl"></div>
-        <div className="absolute -bottom-[400px] left-[10%] w-[800px] h-[800px] rounded-full bg-light-blue opacity-10 blur-xl"></div>
-      </div>
-      
-      <div className="container mx-auto px-6 relative z-10">
-        <div className="flex flex-col lg:flex-row items-center gap-12">
-          {/* Left Column - Text Content */}
-          <div className="w-full lg:w-1/2 mb-12 lg:mb-0">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-indigo-900 leading-tight mb-6">
-              Get ready for the<br />EU Digital Product Passport
-            </h1>
-            <p className="text-base md:text-xl text-gray-600 mb-8 max-w-2xl">
-              Connecting fashion brands and suppliers through simplified ESG compliance, 
-              streamlined data collection and engaging storytelling
-            </p>
-            <Link href="/auth/register" className="inline-block">
-              <button className="bg-indigo-900 text-white px-8 py-3 rounded-[1251px] text-xl font-medium hover:bg-indigo-800 transition-all">
-                Sign up now
-              </button>
+    <section
+      id="hero"
+      className="relative overflow-hidden py-16 md:py-24 bg-background-dark h-screen flex items-center"
+      style={{
+        backgroundImage: "url('/background-logo.svg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
+      <div className="container mx-auto px-6 relative z-10 text-center">
+        <h1 className="text-white text-5xl font-bold md:mt-16">
+          Your Digital Product Passport
+        </h1>
+        <p className="text-gray-300 text-lg max-w-2xl mx-auto mb-10 md:mb-0 mt-4 md:mt-2 leading-relaxed">
+          Connecting fashion brands and suppliers through simplified ESG
+          compliance, streamlined data collection and engaging storytelling
+        </p>
+
+        <div className="mt-10 md:hidden block">
+          <Link
+            href="/auth/register"
+            className="bg-primary hover:bg-primary-dark text-white font-medium py-3 px-8 rounded-lg transition-colors duration-300 inline-flex items-center"
+          >
+            Get Started
+            <svg
+              className="ml-2 w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M14 5l7 7m0 0l-7 7m7-7H3"
+              />
+            </svg>
+          </Link>
+        </div>
+        <div className="md:block hidden max-w-4xl mx-auto relative">
+          <div className="mt-10 md:block hidden absolute top-16 right-1/2 translate-x-1/2">
+            <Link
+              href="/auth/register"
+              className="bg-primary hover:bg-primary-dark text-white font-medium py-3 px-8 rounded-lg transition-colors duration-300 inline-flex items-center"
+            >
+              Get Started
+              <svg
+                className="ml-2 w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M14 5l7 7m0 0l-7 7m7-7H3"
+                />
+              </svg>
             </Link>
           </div>
-          
-          {/* Center - Feature Pills */}
-          <div className="hidden lg:block">
-            <FeaturePills />
-          </div>
-          
-          {/* Right Column - Product Showcase */}
-          <div className="w-full lg:w-auto">
-            <ProductShowcase />
-          </div>
-        </div>
-        
-        {/* Mobile Feature Pills (only visible on mobile) */}
-        <div className="lg:hidden mt-16">
-          <FeaturePills />
+          <Image
+            src="/hero-image.png"
+            alt="Hero Image"
+            width={1000}
+            height={1000}
+            className="w-full h-full object-cover"
+          />
         </div>
       </div>
     </section>

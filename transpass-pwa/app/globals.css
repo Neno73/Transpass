@@ -27,6 +27,7 @@
   /* Background & Foreground */
   --background: #ffffff;
   --foreground: #292621;
+  --background-dark: #2b356d;
 
   /* Spacing */
   --spacing-2xs: 4px;
