@@ -53,6 +53,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             const companyDoc = await getDoc(
               doc(db, "companies", fetchedProduct.companyId)
             );
+
             if (companyDoc.exists()) {
               setCompany({
                 id: companyDoc.id,
@@ -84,7 +85,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   if (!product) {
     return (
       <div className="min-h-screen bg-primary-lightest flex flex-col items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full text-center">
+        <div className="p-8 rounded-2xl shadow-lg max-w-md w-full text-center">
           <Image
             src="/logo.svg"
             alt="TransPass Logo"
@@ -114,18 +115,18 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   return (
     <div className="min-h-screen bg-primary-lightest flex flex-col">
       {/* Updated minimal header */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md shadow-sm">
+      <header>
         <div className="max-w-4xl mx-auto px-4 py-3">
-          <div className="flex items-center">
-            <button
-              onClick={() => router.back()}
-              className="mr-3 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
-              aria-label="Go back"
-            >
-              <ArrowLeft size={20} className="text-gray-600" />
-            </button>
-            <div className="bg-primary/10 px-4 py-1.5 rounded-full">
-              <h1 className="text-primary font-medium truncate">
+          <button
+            onClick={() => router.back()}
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-white transition-colors"
+            aria-label="Go back"
+          >
+            <ArrowLeft size={20} className="text-gray-600" />
+          </button>
+          <div className="flex items-center justify-center">
+            <div className="bg-white p-4 px-6 rounded-full mr-4 ">
+              <h1 className="text-background-dark font-medium truncate">
                 {product.name}
               </h1>
             </div>
@@ -133,42 +134,8 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         </div>
       </header>
 
-      <main className="flex-grow p-4 max-w-4xl mx-auto w-full pb-20">
+      <main className="flex-grow p-4 max-w-4xl mx-auto w-full pb-20 pt-0">
         <div className="bg-white rounded-2xl shadow-md overflow-hidden mb-8">
-          {/* Product Header */}
-          <div className="p-6 border-b border-gray-100">
-            {companyData && (
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-primary-lightest rounded-full flex items-center justify-center mr-4">
-                  {companyData.logo ? (
-                    <Image
-                      src={companyData.logo}
-                      alt={companyData.name}
-                      width={32}
-                      height={32}
-                      className="rounded-full"
-                    />
-                  ) : (
-                    <span className="text-primary font-semibold">
-                      {companyData.name.charAt(0)}
-                    </span>
-                  )}
-                </div>
-                <div>
-                  <h2 className="text-lg font-medium text-gray-dark">
-                    {companyData.name}
-                  </h2>
-                  <p className="text-sm text-gray">
-                    {companyData.description || "Verified Manufacturer"}
-                  </p>
-                </div>
-              </div>
-            )}
-            <h1 className="text-2xl font-bold text-gray-dark">
-              {product.name}
-            </h1>
-          </div>
-
           {/* Tabs */}
           <div className="border-b border-gray-100 px-6">
             <div className="flex space-x-8">
@@ -244,6 +211,18 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                       <span className="mt-2">No Product Image Available</span>
                     </div>
                   )}
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  <p className="text-gray">
+                    By{" "}
+                    <Link
+                      href={`/c/${companyData?.id}`}
+                      className="text-primary underline"
+                    >
+                      {companyData?.name || "Verified Manufacturer"}
+                    </Link>
+                  </p>
                 </div>
 
                 <div>

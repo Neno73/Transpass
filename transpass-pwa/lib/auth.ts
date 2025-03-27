@@ -1,42 +1,61 @@
-import { 
+import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   UserCredential,
   updateProfile,
   sendPasswordResetEmail,
-  User
-} from 'firebase/auth';
-import { doc, setDoc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { auth, db } from './firebase';
+  User,
+} from "firebase/auth";
+import {
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc,
+  serverTimestamp,
+} from "firebase/firestore";
+import { auth, db } from "./firebase";
 
 // Register a new user with email and password
 export const registerUser = async (
-  email: string, 
-  password: string, 
+  email: string,
+  password: string,
   displayName: string,
   companyName?: string,
   isCompany: boolean = false
 ): Promise<UserCredential> => {
   try {
     // Create the user in Firebase Auth
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
     const user = userCredential.user;
-    
+
     // Update the user's display name
     await updateProfile(user, { displayName });
-    
+
     // Create a user document in Firestore
-    await setDoc(doc(db, 'users', user.uid), {
+    await setDoc(doc(db, "users", user.uid), {
       uid: user.uid,
       email,
       displayName,
       isCompany,
       companyName: companyName || null,
       createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
+      updatedAt: serverTimestamp(),
     });
-    
+
+    if (isCompany) {
+      await setDoc(doc(db, "companies", user.uid), {
+        uid: user.uid,
+        name: companyName,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    }
+
     return userCredential;
   } catch (error) {
     console.error("Error registering user:", error);
@@ -45,7 +64,10 @@ export const registerUser = async (
 };
 
 // Sign in an existing user
-export const signIn = async (email: string, password: string): Promise<UserCredential> => {
+export const signIn = async (
+  email: string,
+  password: string
+): Promise<UserCredential> => {
   try {
     return await signInWithEmailAndPassword(auth, email, password);
   } catch (error) {
@@ -70,7 +92,7 @@ export const resetPassword = async (email: string): Promise<void> => {
     // Use the default Firebase password reset flow
     // This will use Firebase's default handling which is more reliable
     return await sendPasswordResetEmail(auth, email);
-    
+
     // NOTE: If you want to use custom URLs in the future, uncomment this code:
     /*
     const actionCodeSettings = {
@@ -90,7 +112,7 @@ export const resetPassword = async (email: string): Promise<void> => {
 // Get the current user's data from Firestore
 export const getUserData = async (user: User) => {
   try {
-    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    const userDoc = await getDoc(doc(db, "users", user.uid));
     if (userDoc.exists()) {
       return userDoc.data();
     }
@@ -103,7 +125,7 @@ export const getUserData = async (user: User) => {
 
 // Update user profile
 export const updateUserProfile = async (
-  user: User, 
+  user: User,
   data: {
     displayName?: string;
     companyName?: string;
@@ -118,20 +140,47 @@ export const updateUserProfile = async (
       const profileUpdate: { displayName?: string; photoURL?: string } = {};
       if (data.displayName) profileUpdate.displayName = data.displayName;
       if (data.photoURL) profileUpdate.photoURL = data.photoURL;
-      
+
       await updateProfile(user, profileUpdate);
     }
-    
+
     // Update the user document in Firestore
-    const userRef = doc(db, 'users', user.uid);
+    const userRef = doc(db, "users", user.uid);
     await updateDoc(userRef, {
       ...data,
-      updatedAt: serverTimestamp()
+      updatedAt: serverTimestamp(),
     });
-    
+
     return true;
   } catch (error) {
     console.error("Error updating user profile:", error);
+    throw error;
+  }
+};
+
+export const updateCompanyProfile = async (
+  user: User,
+  data: {
+    companyName?: string;
+    displayName?: string;
+    website?: string;
+    description?: string;
+    phone?: string;
+    address?: string;
+    certifications?: string[];
+    image?: string;
+  }
+) => {
+  try {
+    const companyRef = doc(db, "companies", user.uid);
+    await updateDoc(companyRef, {
+      ...data,
+      updatedAt: serverTimestamp(),
+    });
+
+    return true;
+  } catch (error) {
+    console.error("Error updating company profile:", error);
     throw error;
   }
 };
