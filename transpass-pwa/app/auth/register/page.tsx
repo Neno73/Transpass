@@ -45,7 +45,7 @@ export default function RegisterPage() {
 
     try {
       // Register the user
-      const userCredential = await registerUser(
+      await registerUser(
         email,
         password,
         name,
