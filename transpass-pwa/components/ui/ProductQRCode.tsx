@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from 'react';
-import { Button } from './Button';
-import QRCode from 'qrcode';
-
+import React, { useEffect, useRef, useState } from "react";
+import { Button } from "./Button";
+import QRCode from "qrcode";
+import Image from "next/image";
 interface ProductQRCodeProps {
   productId: string;
   productName?: string;
@@ -12,83 +12,83 @@ interface ProductQRCodeProps {
   color?: string;
 }
 
-export default function ProductQRCode({ 
-  productId, 
-  productName, 
+export default function ProductQRCode({
+  productId,
+  productName,
   baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin,
-  logoUrl, 
-  color = '#3D4EAD' 
+  logoUrl,
+  color = "#3D4EAD",
 }: ProductQRCodeProps) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  
+
   useEffect(() => {
     generateQRCode();
   }, [productId, baseUrl, color]);
-  
+
   const generateQRCode = async () => {
     if (!productId) return;
-    
+
     try {
       setIsGenerating(true);
       setError(null);
-      
+
       const productUrl = `${baseUrl}/p/${productId}`;
-      
+
       // Generate QR code as data URL
       const qrCode = await QRCode.toDataURL(productUrl, {
-        errorCorrectionLevel: 'H',
+        errorCorrectionLevel: "H",
         margin: 2,
         color: {
           dark: color,
-          light: '#FFFFFF'
-        }
+          light: "#FFFFFF",
+        },
       });
-      
+
       setQrDataUrl(qrCode);
-      
+
       // Also render to canvas if the ref exists
       if (canvasRef.current) {
         await QRCode.toCanvas(canvasRef.current, productUrl, {
-          errorCorrectionLevel: 'H',
+          errorCorrectionLevel: "H",
           margin: 2,
           color: {
             dark: color,
-            light: '#FFFFFF'
+            light: "#FFFFFF",
           },
-          width: 200
+          width: 200,
         });
       }
     } catch (err) {
-      console.error('Error generating QR code:', err);
-      setError('Failed to generate QR code. Please try again.');
+      console.error("Error generating QR code:", err);
+      setError("Failed to generate QR code. Please try again.");
     } finally {
       setIsGenerating(false);
     }
   };
-  
+
   const downloadQRCode = () => {
     if (!qrDataUrl) return;
-    
-    const fileName = `${productName || 'product'}-qrcode.png`;
-    const link = document.createElement('a');
+
+    const fileName = `${productName || "product"}-qrcode.png`;
+    const link = document.createElement("a");
     link.href = qrDataUrl;
     link.download = fileName;
     link.click();
   };
-  
+
   const printQRCode = () => {
     if (!qrDataUrl) return;
-    
+
     // Create a new window
-    const printWindow = window.open('', '_blank');
+    const printWindow = window.open("", "_blank");
     if (!printWindow) {
-      setError('Pop-up blocked. Please allow pop-ups and try again.');
+      setError("Pop-up blocked. Please allow pop-ups and try again.");
       return;
     }
-    
+
     // Add content to the new window
     printWindow.document.write(`
       <!DOCTYPE html>
@@ -127,7 +127,7 @@ export default function ProductQRCode({
         </head>
         <body>
           <div class="qr-container">
-            <h1>${productName || 'Product QR Code'}</h1>
+            <h1>${productName || "Product QR Code"}</h1>
             <p>Scan this code to view product details</p>
             <img src="${qrDataUrl}" alt="Product QR Code" />
             <p>Product ID: ${productId}</p>
@@ -146,10 +146,10 @@ export default function ProductQRCode({
         </body>
       </html>
     `);
-    
+
     printWindow.document.close();
   };
-  
+
   return (
     <div className="qr-code-container">
       {error && (
@@ -157,70 +157,59 @@ export default function ProductQRCode({
           {error}
         </div>
       )}
-      
-      <div className="flex items-start space-x-6">
-        <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-sm">
+
+      <div className="">
+        <div className="p-4  mb-4 flex items-center justify-center">
           {isGenerating ? (
-            <div className="w-[200px] h-[200px] flex items-center justify-center">
+            <div className="flex items-center justify-center">
               <div className="w-8 h-8 border-4 border-primary-light border-t-primary rounded-full animate-spin"></div>
             </div>
           ) : qrDataUrl ? (
-            <img 
-              src={qrDataUrl} 
-              alt="Product QR Code" 
-              className="w-[200px] h-[200px]" 
+            <Image
+              src={qrDataUrl}
+              alt="Product QR Code"
+              width={200}
+              height={200}
             />
           ) : (
-            <div className="w-[200px] h-[200px] flex items-center justify-center bg-gray-50">
+            <div className="flex items-center justify-center bg-gray-50">
               <p className="text-sm text-gray">No QR code generated</p>
             </div>
           )}
-          
-          {/* Canvas element for direct manipulation if needed */}
-          <canvas 
-            ref={canvasRef} 
-            className="hidden" 
-            width="200" 
-            height="200"
-          ></canvas>
         </div>
-        
-        <div className="flex-1">
+
+        <div>
           <h3 className="text-lg font-medium text-gray-dark mb-2">
-            {productName ? `QR Code for ${productName}` : 'Product QR Code'}
+            {productName ? `QR Code for ${productName}` : "Product QR Code"}
           </h3>
-          
+
           <p className="text-sm text-gray mb-4">
-            Scan this code to access product details and information. You can download 
-            or print this QR code to place on your product packaging.
+            Scan this code to access product details and information. You can
+            download or print this QR code to place on your product packaging.
           </p>
-          
-          <div className="text-sm text-gray mb-4">
-            <p>Links to: <span className="text-primary">{baseUrl}/p/{productId}</span></p>
-          </div>
-          
+
           <div className="flex flex-wrap gap-3">
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={downloadQRCode}
               disabled={!qrDataUrl || isGenerating}
             >
               Download
             </Button>
-            
-            <Button 
-              variant="outline" 
-              size="sm" 
+
+            <Button
+              variant="outline"
+              size="sm"
               onClick={printQRCode}
               disabled={!qrDataUrl || isGenerating}
             >
               Print
             </Button>
-            
-            <Button 
-              variant="outline" 
-              size="sm" 
+
+            <Button
+              variant="outline"
+              size="sm"
               onClick={generateQRCode}
               disabled={isGenerating}
             >
