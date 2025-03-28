@@ -48,6 +48,7 @@ export default function CreateProductPage() {
     manufacturer: "",
     model: "",
     category: "",
+    careInstructions: "",
     tags: [] as string[],
     care: {
       washing: "",
@@ -67,6 +68,12 @@ export default function CreateProductPage() {
       certifications?: string[];
     }[],
   });
+
+  // Add these new state variables for validation
+  const [validationErrors, setValidationErrors] = useState<
+    Record<string, string>
+  >({});
+  const [attemptedNextStep, setAttemptedNextStep] = useState(false);
 
   // Cleanup function for handling image preview URLs
   useEffect(() => {
@@ -102,12 +109,81 @@ export default function CreateProductPage() {
     }
   };
 
+  // Update the nextStep function to validate before proceeding
   const nextStep = () => {
-    setStep(step + 1);
+    setAttemptedNextStep(true);
+
+    // Validate based on current step
+    const errors: Record<string, string> = {};
+
+    if (step === 1) {
+      if (!productData.name.trim()) {
+        errors.name = "Product name is required";
+      }
+
+      if (!imageFile) {
+        errors.image = "Product image is required";
+      }
+
+      if (productData.description.trim().length > 320) {
+        errors.description = "Description must be 320 characters or less";
+      }
+
+      if (productData.colors.length === 0) {
+        errors.colors = "At least one product color is required";
+      }
+
+      if (productData.sizes.length === 0) {
+        errors.sizes = "At least one product size is required";
+      }
+    } else if (step === 2) {
+      if (!productData.SKU.trim()) {
+        errors.SKU = "SKU is required";
+      }
+
+      if (!productData.madeIn.trim()) {
+        errors.madeIn = "Country of origin is required";
+      }
+
+      if (!productData.producedBy.trim()) {
+        errors.producedBy = "Manufacturer information is required";
+      }
+    }
+
+    // Set validation errors
+    setValidationErrors(errors);
+
+    // Only proceed if no errors
+    if (Object.keys(errors).length === 0) {
+      setStep(step + 1);
+      setAttemptedNextStep(false);
+    }
   };
 
+  // Reset validation when going back
   const prevStep = () => {
+    setValidationErrors({});
+    setAttemptedNextStep(false);
     setStep(step - 1);
+  };
+
+  // Helper function to determine if a field has an error
+  const hasError = (fieldName: string) => {
+    return attemptedNextStep && validationErrors[fieldName];
+  };
+
+  // Helper function to get error message
+  const getErrorMessage = (fieldName: string) => {
+    return validationErrors[fieldName] || "";
+  };
+
+  // Helper function to get input class based on error state
+  const getInputClass = (fieldName: string) => {
+    return `mt-1 block w-full border ${
+      hasError(fieldName)
+        ? "border-red-500 focus:ring-red-500 focus:border-red-500"
+        : "border-gray-300 focus:ring-primary focus:border-primary"
+    } rounded-lg py-2 px-3 focus:outline-none`;
   };
 
   const handleSizeToggle = (size: string) => {
@@ -360,13 +436,14 @@ export default function CreateProductPage() {
         description: productData.description,
         manufacturer: productData.producedBy || productData.manufacturer,
         model: productData.SKU || productData.model,
-        category: productData.collection || productData.category,
+        category: productData.category,
         tags: productData.sizes, // Convert sizes to tags for now
         colors: productData.colors,
         madeIn: productData.madeIn,
         importedBy: productData.importedBy,
         soldAt: productData.soldAt,
         care: productData.care,
+        careInstructions: productData.careInstructions,
         components: components,
         warrantyInfo: "", // We can add this later
         createdBy: user?.uid || "anonymous",
@@ -478,7 +555,9 @@ export default function CreateProductPage() {
               <div>
                 <label
                   htmlFor="productName"
-                  className="block text-sm font-medium text-gray-dark"
+                  className={`block text-sm font-medium ${
+                    hasError("name") ? "text-red-500" : "text-gray-dark"
+                  }`}
                 >
                   Product name <span className="text-red-500">*</span>
                 </label>
@@ -489,14 +568,21 @@ export default function CreateProductPage() {
                   value={productData.name}
                   onChange={handleChange}
                   required
-                  className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
+                  className={getInputClass("name")}
                 />
+                {hasError("name") && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {getErrorMessage("name")}
+                  </p>
+                )}
               </div>
 
               <div>
                 <label
                   htmlFor="productImage"
-                  className="block text-sm font-medium text-gray-dark"
+                  className={`block text-sm font-medium ${
+                    hasError("image") ? "text-red-500" : "text-gray-dark"
+                  }`}
                 >
                   Product image <span className="text-red-500">*</span>
                 </label>
@@ -514,10 +600,9 @@ export default function CreateProductPage() {
 
                       <Button
                         type="button"
-                        variant="outline"
+                        variant={hasError("image") ? "destructive" : "outline"}
                         onClick={() => {
                           console.log("Choose image button clicked");
-                          // Use the React ref to access the file input
                           if (fileInputRef.current) {
                             console.log("Clicking file input via ref...");
                             fileInputRef.current.click();
@@ -538,7 +623,11 @@ export default function CreateProductPage() {
                             }
                           }
                         }}
-                        className="flex items-center justify-center gap-2 h-12 px-4 rounded-full border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                        className={`flex items-center justify-center gap-2 h-12 px-4 rounded-full ${
+                          hasError("image")
+                            ? "border-red-500 text-red-500"
+                            : "border-gray-300 text-gray-700"
+                        }`}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -564,6 +653,12 @@ export default function CreateProductPage() {
                       {imageFile ? imageFile.name : "No file chosen"}
                     </span>
                   </div>
+
+                  {hasError("image") && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {getErrorMessage("image")}
+                    </p>
+                  )}
 
                   {/* Image preview section - separated from the button */}
                   {imagePreviewUrl && (
@@ -629,7 +724,9 @@ export default function CreateProductPage() {
               <div>
                 <label
                   htmlFor="description"
-                  className="block text-sm font-medium text-gray-dark"
+                  className={`block text-sm font-medium ${
+                    hasError("description") ? "text-red-500" : "text-gray-dark"
+                  }`}
                 >
                   Describe the product <span className="text-red-500">*</span>
                 </label>
@@ -640,15 +737,21 @@ export default function CreateProductPage() {
                   value={productData.description}
                   onChange={handleChange}
                   required
-                  className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
+                  className={getInputClass("description")}
                 />
+                {hasError("description") && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {getErrorMessage("description")}
+                  </p>
+                )}
                 <p className="mt-1 text-xs text-gray-500">Max 320 characters</p>
               </div>
 
               <div>
                 <label
-                  htmlFor="productColor"
-                  className="block text-sm font-medium text-gray-dark"
+                  className={`block text-sm font-medium ${
+                    hasError("colors") ? "text-red-500" : "text-gray-dark"
+                  }`}
                 >
                   Product color <span className="text-red-500">*</span>
                 </label>
@@ -864,10 +967,19 @@ export default function CreateProductPage() {
                     </Button>
                   )}
                 </div>
+                {hasError("colors") && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {getErrorMessage("colors")}
+                  </p>
+                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-dark">
+                <label
+                  className={`block text-sm font-medium ${
+                    hasError("sizes") ? "text-red-500" : "text-gray-dark"
+                  }`}
+                >
                   Product sizes <span className="text-red-500">*</span>
                 </label>
                 <div className="mt-1 grid grid-cols-4 gap-3">
@@ -898,6 +1010,11 @@ export default function CreateProductPage() {
                     </button>
                   ))}
                 </div>
+                {hasError("sizes") && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {getErrorMessage("sizes")}
+                  </p>
+                )}
               </div>
 
               <div className="flex justify-end">
@@ -932,8 +1049,38 @@ export default function CreateProductPage() {
 
                 <div>
                   <label
-                    htmlFor="SKU"
+                    htmlFor="category"
                     className="block text-sm font-medium text-gray-dark"
+                  >
+                    Category
+                  </label>
+                  <select
+                    name="category"
+                    id="category"
+                    value={productData.category}
+                    onChange={handleChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
+                  >
+                    <option value="">Select a category</option>
+                    <option value="Tops">Tops</option>
+                    <option value="Bottoms">Bottoms</option>
+                    <option value="Dresses">Dresses</option>
+                    <option value="Outerwear">Outerwear</option>
+                    <option value="Activewear">Activewear</option>
+                    <option value="Underwear">Underwear</option>
+                    <option value="Accessories">Accessories</option>
+                    <option value="Footwear">Footwear</option>
+                    <option value="Home">Home</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="SKU"
+                    className={`block text-sm font-medium ${
+                      hasError("SKU") ? "text-red-500" : "text-gray-dark"
+                    }`}
                   >
                     SKU <span className="text-red-500">*</span>
                   </label>
@@ -944,14 +1091,21 @@ export default function CreateProductPage() {
                     value={productData.SKU}
                     onChange={handleChange}
                     required
-                    className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
+                    className={getInputClass("SKU")}
                   />
+                  {hasError("SKU") && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {getErrorMessage("SKU")}
+                    </p>
+                  )}
                 </div>
 
                 <div>
                   <label
                     htmlFor="madeIn"
-                    className="block text-sm font-medium text-gray-dark"
+                    className={`block text-sm font-medium ${
+                      hasError("madeIn") ? "text-red-500" : "text-gray-dark"
+                    }`}
                   >
                     Made in <span className="text-red-500">*</span>
                   </label>
@@ -962,14 +1116,21 @@ export default function CreateProductPage() {
                     value={productData.madeIn}
                     onChange={handleChange}
                     required
-                    className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
+                    className={getInputClass("madeIn")}
                   />
+                  {hasError("madeIn") && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {getErrorMessage("madeIn")}
+                    </p>
+                  )}
                 </div>
 
                 <div>
                   <label
                     htmlFor="producedBy"
-                    className="block text-sm font-medium text-gray-dark"
+                    className={`block text-sm font-medium ${
+                      hasError("producedBy") ? "text-red-500" : "text-gray-dark"
+                    }`}
                   >
                     Produced by <span className="text-red-500">*</span>
                   </label>
@@ -980,8 +1141,13 @@ export default function CreateProductPage() {
                     value={productData.producedBy}
                     onChange={handleChange}
                     required
-                    className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
+                    className={getInputClass("producedBy")}
                   />
+                  {hasError("producedBy") && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {getErrorMessage("producedBy")}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -1015,6 +1181,137 @@ export default function CreateProductPage() {
                     value={productData.soldAt}
                     onChange={handleChange}
                     className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
+                  />
+                </div>
+              </div>
+
+              {/* Product Care Section */}
+              <div className="mt-8">
+                <h3 className="text-md font-medium text-primary mb-4">
+                  Product Care Instructions
+                </h3>
+
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 mb-4">
+                  <div>
+                    <label
+                      htmlFor="care.washing"
+                      className="block text-sm font-medium text-gray-dark"
+                    >
+                      Washing
+                    </label>
+                    <select
+                      name="care.washing"
+                      id="care.washing"
+                      value={productData.care.washing}
+                      onChange={handleChange}
+                      className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
+                    >
+                      <option value="">Select washing instruction</option>
+                      <option value="Machine wash cold">
+                        Machine wash cold
+                      </option>
+                      <option value="Machine wash warm">
+                        Machine wash warm
+                      </option>
+                      <option value="Machine wash hot">Machine wash hot</option>
+                      <option value="Hand wash only">Hand wash only</option>
+                      <option value="Dry clean only">Dry clean only</option>
+                      <option value="Do not wash">Do not wash</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="care.drying"
+                      className="block text-sm font-medium text-gray-dark"
+                    >
+                      Drying
+                    </label>
+                    <select
+                      name="care.drying"
+                      id="care.drying"
+                      value={productData.care.drying}
+                      onChange={handleChange}
+                      className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
+                    >
+                      <option value="">Select drying instruction</option>
+                      <option value="Tumble dry low">Tumble dry low</option>
+                      <option value="Tumble dry medium">
+                        Tumble dry medium
+                      </option>
+                      <option value="Tumble dry high">Tumble dry high</option>
+                      <option value="Line dry">Line dry</option>
+                      <option value="Lay flat to dry">Lay flat to dry</option>
+                      <option value="Do not tumble dry">
+                        Do not tumble dry
+                      </option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="care.ironing"
+                      className="block text-sm font-medium text-gray-dark"
+                    >
+                      Ironing
+                    </label>
+                    <select
+                      name="care.ironing"
+                      id="care.ironing"
+                      value={productData.care.ironing}
+                      onChange={handleChange}
+                      className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
+                    >
+                      <option value="">Select ironing instruction</option>
+                      <option value="Iron on low">Iron on low</option>
+                      <option value="Iron on medium">Iron on medium</option>
+                      <option value="Iron on high">Iron on high</option>
+                      <option value="Do not iron">Do not iron</option>
+                      <option value="Steam iron only">Steam iron only</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="care.bleaching"
+                      className="block text-sm font-medium text-gray-dark"
+                    >
+                      Bleaching
+                    </label>
+                    <select
+                      name="care.bleaching"
+                      id="care.bleaching"
+                      value={productData.care.bleaching}
+                      onChange={handleChange}
+                      className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
+                    >
+                      <option value="">Select bleaching instruction</option>
+                      <option value="Bleach when needed">
+                        Bleach when needed
+                      </option>
+                      <option value="Non-chlorine bleach only">
+                        Non-chlorine bleach only
+                      </option>
+                      <option value="Do not bleach">Do not bleach</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="careInstructions"
+                    className="block text-sm font-medium text-gray-dark"
+                  >
+                    Additional Care Instructions
+                  </label>
+                  <textarea
+                    id="careInstructions"
+                    name="careInstructions"
+                    rows={3}
+                    value={productData.careInstructions || ""}
+                    onChange={handleChange}
+                    className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
+                    placeholder="Add any additional care instructions or notes here..."
                   />
                 </div>
               </div>
@@ -1366,118 +1663,13 @@ export default function CreateProductPage() {
                 >
                   Back
                 </Button>
-                <Button onClick={nextStep} disabled={submitting}>
-                  Next
+                <Button onClick={handleCreateProduct} disabled={submitting}>
+                  Create Product
                 </Button>
               </div>
 
               {error && (
                 <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-lg">
-                  {error.split("\n").map((err, i) => (
-                    <div key={i} className="mb-1">
-                      • {err}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {step === 4 && (
-            <div className="space-y-6">
-              <h2 className="text-lg font-medium text-primary mb-4">
-                Care Instructions
-              </h2>
-
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div>
-                  <label
-                    htmlFor="care.washing"
-                    className="block text-sm font-medium text-gray-dark"
-                  >
-                    Washing instructions
-                  </label>
-                  <input
-                    type="text"
-                    name="care.washing"
-                    id="care.washing"
-                    value={productData.care.washing}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
-                    placeholder="e.g., Machine wash cold"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="care.drying"
-                    className="block text-sm font-medium text-gray-dark"
-                  >
-                    Drying instructions
-                  </label>
-                  <input
-                    type="text"
-                    name="care.drying"
-                    id="care.drying"
-                    value={productData.care.drying}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
-                    placeholder="e.g., Tumble dry low"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="care.ironing"
-                    className="block text-sm font-medium text-gray-dark"
-                  >
-                    Ironing instructions
-                  </label>
-                  <input
-                    type="text"
-                    name="care.ironing"
-                    id="care.ironing"
-                    value={productData.care.ironing}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
-                    placeholder="e.g., Iron on medium heat"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="care.bleaching"
-                    className="block text-sm font-medium text-gray-dark"
-                  >
-                    Bleaching instructions
-                  </label>
-                  <input
-                    type="text"
-                    name="care.bleaching"
-                    id="care.bleaching"
-                    value={productData.care.bleaching}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
-                    placeholder="e.g., Do not bleach"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-5 flex justify-between">
-                <Button
-                  variant="outline"
-                  onClick={prevStep}
-                  disabled={submitting}
-                >
-                  Back
-                </Button>
-                <Button onClick={handleCreateProduct} disabled={submitting}>
-                  {submitting ? "Creating..." : "Create Product"}
-                </Button>
-              </div>
-
-              {error && (
-                <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-md">
                   {error.split("\n").map((err, i) => (
                     <div key={i} className="mb-1">
                       • {err}

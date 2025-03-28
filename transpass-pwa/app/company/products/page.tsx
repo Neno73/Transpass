@@ -169,7 +169,7 @@ function ProductsList() {
   };
 
   return (
-    <div className="min-h-screen bg-primary-lightest pb-20 p-2">
+    <div className="min-h-screen bg-primary-lightest pb-20 p-2 max-w-xl mx-auto">
       {/* Mobile header - keep only this part */}
       <main className="py-4 md:py-10 px-4">
         {/* User greeting with avatar - similar to dashboard */}
@@ -353,7 +353,7 @@ function ProductsList() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-16">
+          <div className="grid grid-cols-2  gap-6 mb-16">
             {filteredProducts.map((product) => (
               <ProductCard
                 key={product.id}
