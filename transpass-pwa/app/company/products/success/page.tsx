@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Button } from "../../../../components/ui/Button";
 import AuthProtection from "../../../../components/AuthProtection";
 
-export default function ProductSuccessPage() {
+// Create a separate component that uses useSearchParams
+function SuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const productId = searchParams.get("id");
@@ -19,6 +20,63 @@ export default function ProductSuccessPage() {
     }
   }, [productId, router]);
 
+  return (
+    <>
+      {/* Success content */}
+      <div className="text-center mt-8 mb-12">
+        <div className="flex justify-center mb-6">
+          <Image src="/checkmark.png" alt="Success" width={300} height={300} />
+        </div>
+        <h1 className="text-2xl font-bold text-white mb-2">
+          Product Created Successfully!
+        </h1>
+        <p className="text-white text-opacity-80 mb-8">
+          {productName ? `"${productName}"` : "Your product"} has been added to
+          your inventory.
+        </p>
+
+        <div className="space-y-3 mt-10 max-w-sm mx-auto">
+          <Button
+            variant="secondary"
+            onClick={() => router.push(`/c/${productId}`)}
+            className="w-full py-2 text-sm"
+          >
+            View Product
+          </Button>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              variant="outline"
+              onClick={() => router.push("/company/products/qrcodes")}
+              className="w-full py-2 text-sm bg-white text-primary border-white hover:bg-white hover:bg-opacity-10"
+            >
+              Generate QR Code
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={() => router.push("/company/products/create")}
+              className="w-full py-2 text-sm text-white border-white hover:bg-white hover:bg-opacity-10"
+            >
+              Create Another
+            </Button>
+          </div>
+
+          <Button
+            variant="ghost"
+            onClick={() => router.push("/company/dashboard")}
+            className="w-full py-2 text-sm text-white hover:bg-white hover:bg-opacity-10"
+          >
+            Return to Dashboard
+          </Button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// Main component with Suspense boundary
+export default function ProductSuccessPage() {
   return (
     <AuthProtection companyOnly>
       <div className="min-h-screen bg-primary pb-20 p-4 max-w-xl mx-auto">
@@ -41,60 +99,11 @@ export default function ProductSuccessPage() {
             />
           </div>
 
-          {/* Success content */}
-          <div className="text-center mt-8 mb-12">
-            <div className="flex justify-center mb-6">
-              <Image
-                src="/checkmark.png"
-                alt="Success"
-                width={300}
-                height={300}
-              />
-            </div>
-            <h1 className="text-2xl font-bold text-white mb-2">
-              Product Created Successfully!
-            </h1>
-            <p className="text-white text-opacity-80 mb-8">
-              {productName ? `"${productName}"` : "Your product"} has been added
-              to your inventory.
-            </p>
-
-            <div className="space-y-3 mt-10 max-w-sm mx-auto">
-              <Button
-                variant="secondary"
-                onClick={() => router.push(`/c/${productId}`)}
-                className="w-full py-2 text-sm"
-              >
-                View Product
-              </Button>
-
-              <div className="grid grid-cols-2 gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => router.push("/company/products/qrcodes")}
-                  className="w-full py-2 text-sm bg-white text-primary border-white hover:bg-white hover:bg-opacity-10"
-                >
-                  Generate QR Code
-                </Button>
-
-                <Button
-                  variant="outline"
-                  onClick={() => router.push("/company/products/create")}
-                  className="w-full py-2 text-sm text-white border-white hover:bg-white hover:bg-opacity-10"
-                >
-                  Create Another
-                </Button>
-              </div>
-
-              <Button
-                variant="ghost"
-                onClick={() => router.push("/company/dashboard")}
-                className="w-full py-2 text-sm text-white hover:bg-white hover:bg-opacity-10"
-              >
-                Return to Dashboard
-              </Button>
-            </div>
-          </div>
+          <Suspense
+            fallback={<div className="text-center text-white">Loading...</div>}
+          >
+            <SuccessContent />
+          </Suspense>
         </main>
       </div>
     </AuthProtection>
