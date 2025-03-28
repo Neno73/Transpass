@@ -1,119 +1,102 @@
-'use client';
+"use client";
 
-import { useState, useEffect, Suspense } from 'react';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Button } from '../../../../components/ui/Button';
-import { SuccessScreen } from '../../../../components/SuccessScreen';
-import { generateAndStoreQRCode } from '../../../../lib/qrcode';
+import React, { useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
+import { Button } from "../../../../components/ui/Button";
+import AuthProtection from "../../../../components/AuthProtection";
 
-// Client component that uses search params
-function SuccessContent() {
+export default function ProductSuccessPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const productId = searchParams.get('id');
-  const productName = searchParams.get('name');
-  
-  const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const productId = searchParams.get("id");
+  const productName = searchParams.get("name");
 
+  // Redirect to dashboard if no product ID is provided
   useEffect(() => {
-    // Generate QR code for the newly created product
-    if (productId) {
-      setLoading(true);
-      generateAndStoreQRCode(productId)
-        .then(url => {
-          setQrCodeUrl(url);
-          setLoading(false);
-        })
-        .catch(err => {
-          console.error('Error generating QR code:', err);
-          setError('Failed to generate QR code. You can view and download it later from your product page.');
-          setLoading(false);
-        });
-    } else {
-      setError('No product information found. Please go back to your products.');
-      setLoading(false);
+    if (!productId) {
+      router.push("/company/dashboard");
     }
-  }, [productId]);
-
-  const handleDownloadQR = () => {
-    if (qrCodeUrl) {
-      const link = document.createElement('a');
-      link.href = qrCodeUrl;
-      link.download = `${productName || 'product'}-qr.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  };
+  }, [productId, router]);
 
   return (
-    <SuccessScreen>
-      {/* QR Code Display */}
-      {loading ? (
-        <div className="bg-white p-4 rounded-lg shadow-md mb-8 w-64 h-64 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
-      ) : qrCodeUrl ? (
-        <div className="bg-white p-4 rounded-lg shadow-md mb-8 mx-auto">
-          <img src={qrCodeUrl} alt="Product QR Code" className="w-64 h-64 object-contain" />
-          <p className="text-center text-sm text-gray-600 mt-2">Scan to view product details</p>
-        </div>
-      ) : (
-        <div className="bg-red-50 p-4 rounded-lg text-red-600 mb-8 max-w-xs mx-auto">
-          <p className="text-sm">{error || 'Unable to generate QR code. Please try again later.'}</p>
-        </div>
-      )}
-      
-      {/* Action Buttons */}
-      <div className="w-full space-y-4">
-        {qrCodeUrl && (
-          <Button 
-            className="w-full bg-white hover:bg-gray-100 text-primary font-medium py-4 px-4 rounded-full"
-            onClick={handleDownloadQR}
-          >
-            Download QR Code
-          </Button>
-        )}
-        
-        <Link href="/company/products/create">
-          <Button 
-            className="w-full bg-white hover:bg-gray-100 text-primary font-medium py-4 px-4 rounded-full"
-          >
-            Add another product
-          </Button>
-        </Link>
-        
-        <Link href="/company/products">
-          <Button 
-            variant="outline"
-            className="w-full bg-transparent hover:bg-primary-dark text-white border border-white font-medium py-4 px-4 rounded-full"
-          >
-            View all products
-          </Button>
-        </Link>
+    <AuthProtection companyOnly>
+      <div className="min-h-screen bg-primary pb-20 p-4 max-w-xl mx-auto">
+        <Image
+          src="/background-grey-logo.svg"
+          alt="Background pattern"
+          width={1000}
+          height={1000}
+          className="absolute top-0 right-0 z-0 opacity-10"
+        />
+        <main className="max-w-2xl mx-auto px-4 py-6 z-10 relative">
+          {/* Logo */}
+          <div className="flex justify-center mb-16">
+            <Image
+              src="/logo.svg"
+              alt="TransPass Logo"
+              width={150}
+              height={40}
+              className="h-10 w-auto"
+            />
+          </div>
+
+          {/* Success content */}
+          <div className="text-center mt-8 mb-12">
+            <div className="flex justify-center mb-6">
+              <Image
+                src="/checkmark.png"
+                alt="Success"
+                width={300}
+                height={300}
+              />
+            </div>
+            <h1 className="text-2xl font-bold text-white mb-2">
+              Product Created Successfully!
+            </h1>
+            <p className="text-white text-opacity-80 mb-8">
+              {productName ? `"${productName}"` : "Your product"} has been added
+              to your inventory.
+            </p>
+
+            <div className="space-y-3 mt-10 max-w-sm mx-auto">
+              <Button
+                variant="secondary"
+                onClick={() => router.push(`/c/${productId}`)}
+                className="w-full py-2 text-sm"
+              >
+                View Product
+              </Button>
+
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => router.push("/company/products/qrcodes")}
+                  className="w-full py-2 text-sm bg-white text-primary border-white hover:bg-white hover:bg-opacity-10"
+                >
+                  Generate QR Code
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={() => router.push("/company/products/create")}
+                  className="w-full py-2 text-sm text-white border-white hover:bg-white hover:bg-opacity-10"
+                >
+                  Create Another
+                </Button>
+              </div>
+
+              <Button
+                variant="ghost"
+                onClick={() => router.push("/company/dashboard")}
+                className="w-full py-2 text-sm text-white hover:bg-white hover:bg-opacity-10"
+              >
+                Return to Dashboard
+              </Button>
+            </div>
+          </div>
+        </main>
       </div>
-    </SuccessScreen>
-  );
-}
-
-// Main page component with Suspense
-export default function ProductSuccessPage() {
-  return (
-    <Suspense fallback={
-      <SuccessScreen>
-        <div className="bg-white p-4 rounded-lg shadow-md mb-8 w-64 h-64 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
-        <div className="w-full space-y-4">
-          <div className="w-full h-12 bg-gray-200 animate-pulse rounded-full"></div>
-          <div className="w-full h-12 bg-gray-200 animate-pulse rounded-full"></div>
-        </div>
-      </SuccessScreen>
-    }>
-      <SuccessContent />
-    </Suspense>
+    </AuthProtection>
   );
 }

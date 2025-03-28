@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import dynamic from "next/dynamic";
 import { Button } from "../../components/ui/Button";
-import { TopNav, BottomNav } from "../../components/ui/Navigation";
+import { BottomNav } from "../../components/ui/Navigation";
 import { getProduct, logProductScan } from "../../lib/products";
 import AuthProtection from "../../components/AuthProtection";
 import { useAuth } from "../../lib/AuthContext";
@@ -24,8 +25,6 @@ const QRScanner = dynamic(() => import("../../components/ui/QRScanner"), {
 });
 
 export default function ScanPage() {
-  // This function would need to be imported and used in a company-specific context
-  // with proper protection for company users, who don't need to access scanning functionality
   const [scanResult, setScanResult] = useState<string | null>(null);
   const [scanning, setScanning] = useState(true);
   const [validatingResult, setValidatingResult] = useState(false);
@@ -127,54 +126,32 @@ export default function ScanPage() {
 
   return (
     <AuthProtection userOnly>
-      <div className="min-h-screen bg-primary-lightest flex flex-col pb-20">
-        {/* Desktop header */}
-        <header className="p-4 flex items-center justify-between md:block hidden">
-          <Link href="/" className="inline-flex items-center">
-            <svg
-              width="40"
-              height="40"
-              viewBox="0 0 60 60"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <rect
-                width="60"
-                height="60"
-                rx="8"
-                fill="#3D4EAD"
-                fillOpacity="0.2"
-              />
-              <circle cx="12" cy="12" r="6" fill="#3D4EAD" />
-              <circle cx="30" cy="12" r="6" fill="#3D4EAD" />
-              <circle cx="48" cy="12" r="6" fill="#3D4EAD" />
-              <circle cx="12" cy="30" r="6" fill="#3D4EAD" />
-              <circle cx="30" cy="30" r="6" fill="#FFFFFF" />
-              <circle cx="48" cy="30" r="6" fill="#3D4EAD" />
-              <circle cx="12" cy="48" r="6" fill="#3D4EAD" />
-              <circle cx="30" cy="48" r="6" fill="#3D4EAD" />
-              <circle cx="48" cy="48" r="6" fill="#3D4EAD" />
-            </svg>
-            <span className="ml-2 text-xl font-bold text-primary">
-              Transpass
-            </span>
-          </Link>
-          <Link href="/user/dashboard">
-            <Button variant="outline">Dashboard</Button>
-          </Link>
-        </header>
+      <div className="min-h-screen bg-white pb-20 p-4 max-w-xl mx-auto">
+        <Image
+          src="/background-grey-logo.svg"
+          alt="Background pattern"
+          width={1000}
+          height={1000}
+          className="absolute top-0 right-0 z-0"
+        />
 
-        {/* Mobile header */}
-        <div className="md:hidden">
-          <TopNav title="Scan QR Code" />
-        </div>
+        <main className="max-w-2xl mx-auto px-4 py-6 z-10 relative">
+          {/* Logo */}
+          <div className="flex justify-center mb-8">
+            <Image
+              src="/logo.svg"
+              alt="TransPass Logo"
+              width={150}
+              height={40}
+              className="h-10 w-auto"
+            />
+          </div>
 
-        <main className="flex-grow flex flex-col items-center justify-center p-4">
-          <div className="bg-white p-6 rounded-xl shadow-md max-w-md w-full">
-            <h1 className="text-xl md:text-2xl font-bold text-center text-gray-dark mb-6 hidden md:block">
-              Scan Product QR Code
-            </h1>
+          <div className="text-3xl mb-8 text-primary text-center font-bold">
+            Scan QR Code
+          </div>
 
+          <div className="bg-white p-6 rounded-xl shadow-sm max-w-md w-full mx-auto">
             {scanning ? (
               <div className="space-y-6">
                 <div className="bg-primary-lightest p-4 rounded-lg text-center text-gray mb-4">
@@ -236,7 +213,7 @@ export default function ScanPage() {
                       <p className="text-gray break-all">{productId}</p>
                     </div>
 
-                    <div className="flex flex-col space-y-4">
+                    <div className="space-y-3 mt-6 max-w-sm mx-auto">
                       {scanError && (
                         <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-800 text-sm">
                           {scanError}
@@ -244,7 +221,7 @@ export default function ScanPage() {
                       )}
 
                       <Button
-                        className="w-full"
+                        className="w-full py-2 text-sm"
                         onClick={handleViewProduct}
                         disabled={loggingHistory}
                       >
@@ -255,7 +232,7 @@ export default function ScanPage() {
 
                       <Button
                         variant="outline"
-                        className="w-full"
+                        className="w-full py-2 text-sm"
                         onClick={handleTryAgain}
                       >
                         Scan Another QR Code
@@ -291,7 +268,7 @@ export default function ScanPage() {
 
                     <Button
                       variant="outline"
-                      className="w-full"
+                      className="w-full py-2 text-sm mt-6"
                       onClick={handleTryAgain}
                     >
                       Try Again
@@ -303,18 +280,18 @@ export default function ScanPage() {
           </div>
         </main>
 
-        <footer className="p-4 text-center text-sm text-gray hidden md:block">
+        <footer className="p-4 text-center text-sm text-gray z-10 relative">
           <p>
-            Don't have a QR code to scan? Check out our{" "}
+            Don&apos;t have a QR code to scan? Check out our{" "}
             <Link href="/demo" className="text-primary hover:underline">
               demo products
             </Link>
           </p>
         </footer>
 
-        {/* Bottom Navigation - Mobile only */}
-        <div>
-          <BottomNav userType="user" />
+        {/* Bottom Navigation */}
+        <div className="fixed bottom-0 left-0 right-0 z-40">
+          <BottomNav userType="consumer" />
         </div>
       </div>
     </AuthProtection>

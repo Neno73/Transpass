@@ -249,12 +249,12 @@ export function BottomNav({ userType }: BottomNavProps) {
 
           {/* Profile */}
           <Link
-            href="/consumer/profile"
+            href="/user/profile"
             className="flex flex-col items-center flex-1"
           >
             <div
               className={`w-12 h-12 rounded-full flex items-center justify-center bg-white shadow-sm ${
-                isActive("/consumer/profile") ? "text-primary" : "text-gray"
+                isActive("/user/profile") ? "text-primary" : "text-gray"
               }`}
             >
               <Image src="/profile.svg" alt="Profile" width={20} height={20} />
