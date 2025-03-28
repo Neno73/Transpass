@@ -129,7 +129,7 @@ export default function CompanyProfile() {
 
   return (
     <AuthProtection companyOnly>
-      <div className="min-h-screen bg-primary-lightest pb-20">
+      <div className="min-h-screen bg-primary-lightest pb-20 mx-auto max-w-2xl">
         {/* Header */}
         <header>
           <div className="max-w-4xl mx-auto px-4 py-3">

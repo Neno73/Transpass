@@ -141,7 +141,7 @@ export default function UserDashboard() {
             </div>
 
             {/* Scan a product button with icon */}
-            <Link href="/consumer/scan">
+            <Link href="/scan">
               <Button className="z-10 relative w-full my-8 mb-12 flex items-center justify-center">
                 <Image
                   src="/scan.svg"
@@ -276,7 +276,7 @@ export default function UserDashboard() {
                   </div>
                   <div className="px-6 py-3 bg-primary-dark">
                     <Link
-                      href="/consumer/scan"
+                      href="/scan"
                       className="text-sm font-medium text-white flex items-center"
                     >
                       Scan a product

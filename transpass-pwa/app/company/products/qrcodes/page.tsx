@@ -1,26 +1,27 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Button } from '../../../../components/ui/Button';
-import { useAuth } from '../../../../lib/AuthContext';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../../../../lib/firebase';
-import { 
-  downloadQRCode, 
-  generatePrintableQRTemplate, 
-  bulkGenerateQRCodes 
-} from '../../../../lib/qrcode';
-
-interface Product {
-  id: string;
-  name: string;
-  description?: string;
-  manufacturer?: string;
-  model?: string;
-  checked?: boolean;
-}
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Button } from "../../../../components/ui/Button";
+import AuthProtection from "../../../../components/AuthProtection";
+import { useAuth } from "../../../../lib/AuthContext";
+import { getCompanyProducts, Product } from "../../../../lib/products";
+import { BottomNav } from "../../../../components/ui/Navigation";
+import {
+  ArrowLeft,
+  Search,
+  Download,
+  Printer,
+  Archive,
+  Check,
+  X,
+  Info,
+} from "lucide-react";
+import Image from "next/image";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
+import QRCode from "qrcode";
 
 export default function ProductQRCodesPage() {
   const { user } = useAuth();
@@ -29,400 +30,551 @@ export default function ProductQRCodesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(
+    null
+  );
   const [qrTemplate, setQrTemplate] = useState<string | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
   const [selectAll, setSelectAll] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [generateSuccess, setGenerateSuccess] = useState(false);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
 
-  // Fetch products on load
   useEffect(() => {
-    async function fetchProducts() {
-      if (!user?.uid) return;
-      
+    const fetchProducts = async () => {
+      if (!user) return;
+
       try {
-        const productsRef = collection(db, 'products');
-        const q = query(productsRef, where("companyId", "==", user.uid));
-        const querySnapshot = await getDocs(q);
-        
-        const fetchedProducts: Product[] = [];
-        querySnapshot.forEach((doc) => {
-          const product = { id: doc.id, ...doc.data() } as Product;
-          product.checked = false; // Initialize checked state for each product
-          fetchedProducts.push(product);
-        });
-        
-        setProducts(fetchedProducts);
+        setLoading(true);
+        const fetchedProducts = await getCompanyProducts(user.uid);
+
+        // Add checked property to each product
+        const productsWithChecked = fetchedProducts.map((product) => ({
+          ...product,
+          checked: false,
+        }));
+
+        setProducts(productsWithChecked);
+        setFilteredProducts(productsWithChecked);
       } catch (err) {
-        console.error('Error fetching products:', err);
-        setError('Failed to load products. Please try again later.');
+        console.error("Error fetching products:", err);
+        setError("Failed to load products. Please try again later.");
       } finally {
         setLoading(false);
       }
-    }
-    
+    };
+
     fetchProducts();
   }, [user]);
 
   // Filter products based on search query
-  const filteredProducts = products.filter(product => 
-    product.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.model?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredProducts(products);
+      return;
+    }
 
-  // Handle single product selection
+    const query = searchQuery.toLowerCase();
+    const filtered = products.filter(
+      (product) =>
+        product.name?.toLowerCase().includes(query) ||
+        product.model?.toLowerCase().includes(query) ||
+        product.id?.toLowerCase().includes(query)
+    );
+    setFilteredProducts(filtered);
+  }, [searchQuery, products]);
+
+  // Handle select all checkbox
+  useEffect(() => {
+    if (selectAll) {
+      const updatedProducts = products.map((product) => ({
+        ...product,
+        checked: true,
+      }));
+      setProducts(updatedProducts);
+      setSelectedProducts(updatedProducts);
+    } else {
+      const updatedProducts = products.map((product) => ({
+        ...product,
+        checked: false,
+      }));
+      setProducts(updatedProducts);
+      setSelectedProducts([]);
+    }
+  }, [selectAll]);
+
+  // Update selected products when individual checkboxes change
+  useEffect(() => {
+    const selected = products.filter((product) => product.checked);
+    setSelectedProducts(selected);
+  }, [products]);
+
   const handleProductSelect = (productId: string) => {
-    setProducts(products.map(product => {
+    const updatedProducts = products.map((product) => {
       if (product.id === productId) {
         return { ...product, checked: !product.checked };
       }
       return product;
-    }));
-    
-    updateSelectedProducts();
+    });
+    setProducts(updatedProducts);
+
+    // Update filtered products as well
+    setFilteredProducts((prevFiltered) =>
+      prevFiltered.map((product) => {
+        if (product.id === productId) {
+          return { ...product, checked: !product.checked };
+        }
+        return product;
+      })
+    );
   };
 
-  // Handle select all checkbox
-  const handleSelectAll = () => {
-    const newSelectAll = !selectAll;
-    setSelectAll(newSelectAll);
-    
-    setProducts(products.map(product => ({
-      ...product,
-      checked: newSelectAll
-    })));
-    
-    updateSelectedProducts();
-  };
-
-  // Update the selected products array
-  const updateSelectedProducts = () => {
-    const selected = products.filter(product => product.checked);
-    setSelectedProducts(selected);
-  };
-
-  // Generate individual QR code
   const handleGenerateQR = async (productId: string, productName: string) => {
     try {
-      await downloadQRCode(productId, productName);
-    } catch (err) {
-      console.error('Error generating QR code:', err);
-      setError('Failed to generate QR code. Please try again.');
-    }
-  };
-
-  // Generate printable template
-  const handleGenerateTemplate = async (product: Product) => {
-    try {
       setGenerating(true);
-      setSelectedProductId(product.id);
-      
-      const templateUrl = await generatePrintableQRTemplate(product.id, {
-        name: product.name,
-        manufacturer: product.manufacturer,
-        model: product.model
+      const url = `${window.location.origin}/p/${productId}`;
+      const qrDataUrl = await QRCode.toDataURL(url, {
+        width: 512,
+        margin: 2,
+        color: {
+          dark: "#3D4EAD",
+          light: "#FFFFFF",
+        },
       });
-      
-      setQrTemplate(templateUrl);
+
+      // Download the QR code
+      const link = document.createElement("a");
+      link.href = qrDataUrl;
+      link.download = `${productName.replace(/\s+/g, "-")}-QR.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      setGenerateSuccess(true);
+      setTimeout(() => setGenerateSuccess(false), 3000);
     } catch (err) {
-      console.error('Error generating QR template:', err);
-      setError('Failed to generate printable QR template. Please try again.');
+      console.error("Error generating QR code:", err);
+      setError("Failed to generate QR code. Please try again.");
     } finally {
       setGenerating(false);
     }
   };
 
-  // Bulk generate QR codes for selected products
   const handleGenerateBulkQR = async () => {
-    if (selectedProducts.length === 0) {
-      setError('Please select at least one product.');
-      return;
-    }
-    
+    if (selectedProducts.length === 0) return;
+
     try {
       setGenerating(true);
-      await bulkGenerateQRCodes(selectedProducts.map(product => ({
-        id: product.id,
-        name: product.name
-      })));
+      const zip = new JSZip();
+
+      // Create a folder for the QR codes
+      const qrFolder = zip.folder("qr-codes");
+
+      // Generate QR codes for each selected product
+      for (const product of selectedProducts) {
+        if (!product.id) continue;
+
+        const url = `${window.location.origin}/p/${product.id}`;
+        const qrDataUrl = await QRCode.toDataURL(url, {
+          width: 512,
+          margin: 2,
+          color: {
+            dark: "#3D4EAD",
+            light: "#FFFFFF",
+          },
+        });
+
+        // Convert data URL to blob
+        const base64Data = qrDataUrl.split(",")[1];
+        qrFolder?.file(
+          `${product.name.replace(/\s+/g, "-")}-QR.png`,
+          base64Data,
+          { base64: true }
+        );
+      }
+
+      // Generate and download the zip file
+      const content = await zip.generateAsync({ type: "blob" });
+      saveAs(content, "product-qr-codes.zip");
+
       setGenerateSuccess(true);
-      
-      // Reset success message after a delay
-      setTimeout(() => {
-        setGenerateSuccess(false);
-      }, 5000);
+      setTimeout(() => setGenerateSuccess(false), 3000);
     } catch (err) {
-      console.error('Error generating bulk QR codes:', err);
-      setError('Failed to generate QR codes. Please try again.');
+      console.error("Error generating bulk QR codes:", err);
+      setError("Failed to generate QR codes. Please try again.");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleGenerateTemplate = async (product: Product) => {
+    try {
+      setGenerating(true);
+      const url = `${window.location.origin}/p/${product.id}`;
+
+      // Generate QR code
+      const qrDataUrl = await QRCode.toDataURL(url, {
+        width: 512,
+        margin: 2,
+        color: {
+          dark: "#3D4EAD",
+          light: "#FFFFFF",
+        },
+      });
+
+      // Create a printable template with product details
+      const canvas = document.createElement("canvas");
+      canvas.width = 1200;
+      canvas.height = 1600;
+      const ctx = canvas.getContext("2d");
+
+      if (!ctx) {
+        throw new Error("Could not get canvas context");
+      }
+
+      // Draw background
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw border
+      ctx.strokeStyle = "#DDDDDD";
+      ctx.lineWidth = 4;
+      ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+
+      // Load and draw QR code
+      const qrImage = new Image();
+      qrImage.onload = () => {
+        // Draw QR code centered at the top
+        const qrSize = 600;
+        ctx.drawImage(
+          qrImage,
+          (canvas.width - qrSize) / 2,
+          100,
+          qrSize,
+          qrSize
+        );
+
+        // Draw company logo or placeholder
+        ctx.fillStyle = "#3D4EAD";
+        ctx.font = "bold 48px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("TRANSPASS", canvas.width / 2, 800);
+
+        // Draw product details
+        ctx.fillStyle = "#333333";
+        ctx.font = "bold 36px Arial";
+        ctx.fillText(product.name, canvas.width / 2, 900);
+
+        ctx.font = "28px Arial";
+        ctx.fillText(`Model: ${product.model || "N/A"}`, canvas.width / 2, 980);
+
+        if (product.manufacturer) {
+          ctx.fillText(
+            `Manufacturer: ${product.manufacturer}`,
+            canvas.width / 2,
+            1040
+          );
+        }
+
+        // Draw instructions
+        ctx.fillStyle = "#666666";
+        ctx.font = "24px Arial";
+        ctx.fillText(
+          "Scan this QR code to view product details",
+          canvas.width / 2,
+          1150
+        );
+
+        // Draw product ID
+        ctx.font = "18px Arial";
+        ctx.fillText(`Product ID: ${product.id}`, canvas.width / 2, 1200);
+
+        // Draw footer
+        ctx.fillStyle = "#3D4EAD";
+        ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
+        ctx.fillStyle = "#FFFFFF";
+        ctx.font = "24px Arial";
+        ctx.fillText(
+          "Powered by Transpass - Product Transparency Platform",
+          canvas.width / 2,
+          canvas.height - 50
+        );
+
+        // Convert to data URL and download
+        const templateUrl = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.href = templateUrl;
+        link.download = `${product.name.replace(/\s+/g, "-")}-QR-Template.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        setGenerateSuccess(true);
+        setTimeout(() => setGenerateSuccess(false), 3000);
+      };
+
+      qrImage.src = qrDataUrl;
+    } catch (err) {
+      console.error("Error generating QR template:", err);
+      setError("Failed to generate QR template. Please try again.");
     } finally {
       setGenerating(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-primary-lightest">
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex">
-              <div className="flex-shrink-0 flex items-center">
-                <Link href="/" className="inline-flex items-center">
-                  <svg width="32" height="32" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect width="60" height="60" rx="8" fill="#3D4EAD" fillOpacity="0.2"/>
-                    <circle cx="12" cy="12" r="6" fill="#3D4EAD"/>
-                    <circle cx="30" cy="12" r="6" fill="#3D4EAD"/>
-                    <circle cx="48" cy="12" r="6" fill="#3D4EAD"/>
-                    <circle cx="12" cy="30" r="6" fill="#3D4EAD"/>
-                    <circle cx="30" cy="30" r="6" fill="#FFFFFF"/>
-                    <circle cx="48" cy="30" r="6" fill="#3D4EAD"/>
-                    <circle cx="12" cy="48" r="6" fill="#3D4EAD"/>
-                    <circle cx="30" cy="48" r="6" fill="#3D4EAD"/>
-                    <circle cx="48" cy="48" r="6" fill="#3D4EAD"/>
-                  </svg>
-                  <span className="ml-2 text-xl font-bold text-primary">Transpass</span>
-                </Link>
+    <AuthProtection companyOnly>
+      <div className="min-h-screen bg-primary-lightest pb-20 mx-auto max-w-2xl relative overflow-hidden">
+        {/* Header */}
+        <header>
+          <div className="max-w-4xl mx-auto px-4 pt-3">
+            <button
+              onClick={() => router.back()}
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-white transition-colors"
+              aria-label="Go back"
+            >
+              <ArrowLeft size={20} className="text-gray-600" />
+            </button>
+            <div className="flex items-center justify-center">
+              <div className="bg-white p-4 mt-4 px-6 rounded-full w-full text-center">
+                <h1 className="text-background-dark font-medium">
+                  Product QR Codes
+                </h1>
               </div>
-              <nav className="ml-6 flex space-x-8">
-                <Link
-                  href="/company/dashboard"
-                  className="border-transparent text-gray hover:text-gray-dark hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  href="/company/products"
-                  className="border-primary text-primary inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                >
-                  Products
-                </Link>
-              </nav>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <main className="py-10">
-        <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-          <h1 className="text-2xl font-bold text-center text-gray-dark mb-8">QR Code Management</h1>
-          
+        <main className="p-4 max-w-4xl mx-auto w-full relative z-10">
+          {/* Success message */}
+          {generateSuccess && (
+            <div className="mb-4 bg-green-50 text-green-800 p-4 rounded-xl flex items-center">
+              <Check size={20} className="mr-2 flex-shrink-0" />
+              <span>QR code generated successfully!</span>
+            </div>
+          )}
+
+          {/* Error message */}
+          {error && (
+            <div className="mb-4 bg-red-50 text-red-800 p-4 rounded-xl flex items-center">
+              <X size={20} className="mr-2 flex-shrink-0" />
+              <span>{error}</span>
+              <button
+                onClick={() => setError(null)}
+                className="ml-auto text-red-800"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          )}
+
           {/* Search and bulk actions */}
-          <div className="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
-            <div className="px-4 py-5 sm:p-6">
-              <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-                <div className="w-full sm:w-64">
-                  <label htmlFor="search" className="sr-only">Search Products</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="h-5 w-5 text-gray" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <input
-                      id="search"
-                      name="search"
-                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                      placeholder="Search products"
-                      type="search"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                  </div>
-                </div>
-                
-                <Button
-                  onClick={handleGenerateBulkQR}
-                  disabled={selectedProducts.length === 0 || generating}
-                  className="w-full sm:w-auto"
-                >
-                  {generating ? 'Generating...' : `Generate QR Codes (${selectedProducts.length})`}
-                </Button>
+          <div className="mb-4 space-y-3">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search size={18} className="text-gray" />
               </div>
-              
-              {error && (
-                <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
-                  <div className="flex">
-                    <div className="flex-shrink-0">
-                      <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-sm text-red-700">{error}</p>
-                    </div>
-                  </div>
-                </div>
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              />
+              {searchQuery && (
+                <button
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setSearchQuery("")}
+                >
+                  <span className="text-gray hover:text-gray-dark">✕</span>
+                </button>
               )}
-              
-              {generateSuccess && (
-                <div className="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
-                  <div className="flex">
-                    <div className="flex-shrink-0">
-                      <svg className="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-sm text-green-700">QR codes successfully generated and downloaded!</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              {/* Products table */}
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <div className="flex items-center">
-                          <input
-                            id="select-all"
-                            name="select-all"
-                            type="checkbox"
-                            className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-                            checked={selectAll}
-                            onChange={handleSelectAll}
-                          />
-                        </div>
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Product
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        ID
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Model
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {loading ? (
-                      <tr>
-                        <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray">
-                          <svg className="inline-block animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Loading products...
-                        </td>
-                      </tr>
-                    ) : filteredProducts.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray">
-                          {searchQuery ? 'No products match your search criteria.' : 'No products found. Create your first product to generate QR codes.'}
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredProducts.map((product) => (
-                        <tr key={product.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <input
-                                id={`product-${product.id}`}
-                                name={`product-${product.id}`}
-                                type="checkbox"
-                                className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-                                checked={product.checked || false}
-                                onChange={() => handleProductSelect(product.id)}
-                              />
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div className="ml-4">
-                                <div className="text-sm font-medium text-gray-900">
-                                  {product.name}
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-500">{product.id.slice(0, 8)}...</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {product.model || 'N/A'}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <div className="flex justify-end space-x-2">
-                              <button
-                                onClick={() => handleGenerateQR(product.id, product.name)}
-                                className="text-primary hover:text-primary-dark"
-                              >
-                                Download QR
-                              </button>
-                              <button
-                                onClick={() => handleGenerateTemplate(product)}
-                                className="text-primary hover:text-primary-dark"
-                              >
-                                Printable
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  id="select-all-mobile"
+                  name="select-all-mobile"
+                  type="checkbox"
+                  className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                  checked={selectAll}
+                  onChange={() => setSelectAll(!selectAll)}
+                />
+                <label
+                  htmlFor="select-all-mobile"
+                  className="ml-2 text-sm text-gray-700"
+                >
+                  Select All ({filteredProducts.length})
+                </label>
+              </div>
+
+              <div className="flex space-x-2">
+                {selectedProducts.length > 0 && (
+                  <Button
+                    onClick={handleGenerateBulkQR}
+                    disabled={generating}
+                    className="flex items-center"
+                    size="sm"
+                  >
+                    <Archive size={16} className="mr-1" />
+                    <span>Bulk Download</span>
+                    <span className="sm:hidden">{selectedProducts.length}</span>
+                  </Button>
+                )}
               </div>
             </div>
           </div>
-          
-          {/* QR Printing Guide */}
-          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-dark mb-4">QR Code Printing Guide</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-primary mb-2">Individual QR Codes</h4>
-                  <p className="text-sm text-gray">Download individual QR codes for each product. These are basic QR codes that link directly to your product page.</p>
-                  <div className="mt-4">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-light text-white">
-                      High Quality PNG
-                    </span>
+
+          {/* Products list */}
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="w-16 h-16 border-4 border-primary-light border-t-primary rounded-full animate-spin"></div>
+              <p className="mt-4 text-gray">Loading products...</p>
+            </div>
+          ) : filteredProducts.length === 0 ? (
+            <div className="bg-white rounded-xl shadow-sm p-8 text-center">
+              <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <Archive size={24} className="text-gray" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No products found
+              </h3>
+              <p className="text-gray mb-6">
+                {searchQuery
+                  ? "No products match your search criteria."
+                  : "You haven't created any products yet."}
+              </p>
+              {searchQuery ? (
+                <Button onClick={() => setSearchQuery("")}>Clear Search</Button>
+              ) : (
+                <Link href="/company/products/new">
+                  <Button>Create Product</Button>
+                </Link>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredProducts.map((product) => (
+                <div
+                  key={product.id}
+                  className="bg-white rounded-xl shadow-sm overflow-hidden"
+                >
+                  <div className="p-4">
+                    <div className="flex items-center">
+                      <input
+                        id={`product-${product.id}`}
+                        name={`product-${product.id}`}
+                        type="checkbox"
+                        className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                        checked={product.checked || false}
+                        onChange={() => handleProductSelect(product.id || "")}
+                      />
+                      <div className="ml-3 flex-grow">
+                        <h3 className="text-sm font-medium text-gray-900">
+                          {product.name}
+                        </h3>
+                        <p className="text-xs text-gray-500">
+                          {product.model || "No model"} • ID:{" "}
+                          {product.id?.slice(0, 8)}...
+                        </p>
+                      </div>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() =>
+                            handleGenerateQR(
+                              product.id || "",
+                              product.name || "product"
+                            )
+                          }
+                          disabled={generating}
+                          className="p-2 text-primary hover:bg-primary-lightest rounded-full transition-colors"
+                          title="Download QR Code"
+                        >
+                          <Download size={20} />
+                        </button>
+                        <button
+                          onClick={() => handleGenerateTemplate(product)}
+                          disabled={generating}
+                          className="p-2 text-green-600 hover:bg-green-50 rounded-full transition-colors"
+                          title="Print Template"
+                        >
+                          <Printer size={20} />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                
+              ))}
+            </div>
+          )}
+
+          {/* QR Printing Guide - Always visible */}
+          <div className="bg-white rounded-xl shadow-sm overflow-hidden mt-6">
+            <div className="p-4">
+              <h3 className="text-lg font-medium text-gray-dark mb-4">
+                QR Code Printing Guide
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-primary mb-2">Printable Templates</h4>
-                  <p className="text-sm text-gray">Generate printable templates that include your QR code along with product details, perfect for labels and packaging.</p>
-                  <div className="mt-4">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      Print-Ready
-                    </span>
+                  <div className="flex items-center mb-2">
+                    <Download size={18} className="text-primary mr-2" />
+                    <h4 className="font-medium text-primary">
+                      Individual QR Codes
+                    </h4>
                   </div>
+                  <p className="text-sm text-gray">
+                    Download individual QR codes for each product.
+                  </p>
                 </div>
-                
+
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-primary mb-2">Bulk Generation</h4>
-                  <p className="text-sm text-gray">Select multiple products and download a ZIP file containing all their QR codes at once, saving you time.</p>
-                  <div className="mt-4">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      ZIP Archive
-                    </span>
+                  <div className="flex items-center mb-2">
+                    <Printer size={18} className="text-green-600 mr-2" />
+                    <h4 className="font-medium text-green-600">
+                      Printable Templates
+                    </h4>
                   </div>
+                  <p className="text-sm text-gray">
+                    Generate printable templates with product details.
+                  </p>
+                </div>
+
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="flex items-center mb-2">
+                    <Archive size={18} className="text-blue-600 mr-2" />
+                    <h4 className="font-medium text-blue-600">
+                      Bulk Generation
+                    </h4>
+                  </div>
+                  <p className="text-sm text-gray">
+                    Download multiple QR codes in a ZIP file.
+                  </p>
                 </div>
               </div>
-              
-              <div className="mt-6 bg-yellow-50 p-4 rounded-lg text-sm text-yellow-800">
+
+              <div className="mt-4 bg-yellow-50 p-4 rounded-lg text-sm text-yellow-800">
                 <h4 className="font-medium mb-2">Printing Tips</h4>
                 <ul className="list-disc list-inside space-y-1">
                   <li>Print at 300 DPI or higher for best results</li>
-                  <li>Minimum recommended size: 2.5 cm × 2.5 cm (1" × 1")</li>
+                  <li>
+                    Minimum recommended size: 2.5 cm × 2.5 cm (1&quot; ×
+                    1&quot;)
+                  </li>
                   <li>Ensure good contrast between QR code and background</li>
-                  <li>Avoid placing QR codes on curved surfaces when possible</li>
                   <li>Test scan your printed QR codes before distributing</li>
                 </ul>
               </div>
             </div>
           </div>
+        </main>
+
+        {/* Bottom Navigation */}
+        <div className="fixed bottom-0 left-0 right-0 z-40">
+          <BottomNav userType="company" />
         </div>
-      </main>
-    </div>
+      </div>
+    </AuthProtection>
   );
 }

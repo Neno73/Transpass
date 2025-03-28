@@ -46,7 +46,21 @@ export function TopNav({
           onClick={handleBack}
           aria-label="Go back"
         >
-          <ChevronLeft size={20} />
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M19 12H5M12 19l-7-7 7-7"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </button>
       )}
 
@@ -172,37 +186,51 @@ export function BottomNav({ userType }: BottomNavProps) {
                 isActive("/user/dashboard") ? "text-primary" : "text-gray"
               }`}
             >
-              <Home size={20} />
-            </div>
-          </Link>
-
-          {/* Search */}
-          <Link
-            href="/consumer/search"
-            className="flex flex-col items-center flex-1"
-          >
-            <div
-              className={`w-12 h-12 rounded-full flex items-center justify-center bg-white shadow-sm ${
-                isActive("/consumer/search") ? "text-primary" : "text-gray"
-              }`}
-            >
-              <Search size={20} />
+              <Image src="/home.svg" alt="Home" width={20} height={20} />
             </div>
           </Link>
 
           {/* Scan (Center Button) */}
-          <Link
-            href="/consumer/scan"
-            className="flex flex-col items-center flex-1"
-          >
+          <Link href="/scan" className="flex flex-col items-center flex-1">
             <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center shadow-lg">
-              <Scan size={24} className="text-white" />
+              <svg
+                width="27"
+                height="27"
+                viewBox="0 0 27 27"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M2.25 10.9688C1.78875 10.9688 1.40625 10.5862 1.40625 10.125V7.3125C1.40625 4.05 4.06125 1.40625 7.3125 1.40625H10.125C10.5862 1.40625 10.9688 1.78875 10.9688 2.25C10.9688 2.71125 10.5862 3.09375 10.125 3.09375H7.3125C4.98375 3.09375 3.09375 4.98375 3.09375 7.3125V10.125C3.09375 10.5862 2.71125 10.9688 2.25 10.9688Z"
+                  fill="#F5F4F0"
+                />
+                <path
+                  d="M24.75 10.9688C24.2888 10.9688 23.9062 10.5862 23.9062 10.125V7.3125C23.9062 4.98375 22.0162 3.09375 19.6875 3.09375H16.875C16.4138 3.09375 16.0312 2.71125 16.0312 2.25C16.0312 1.78875 16.4138 1.40625 16.875 1.40625H19.6875C22.9388 1.40625 25.5938 4.05 25.5938 7.3125V10.125C25.5938 10.5862 25.2112 10.9688 24.75 10.9688Z"
+                  fill="#F5F4F0"
+                />
+                <path
+                  d="M19.6875 25.5938H18C17.5388 25.5938 17.1562 25.2112 17.1562 24.75C17.1562 24.2888 17.5388 23.9062 18 23.9062H19.6875C22.0162 23.9062 23.9062 22.0162 23.9062 19.6875V18C23.9062 17.5388 24.2888 17.1562 24.75 17.1562C25.2112 17.1562 25.5938 17.5388 25.5938 18V19.6875C25.5938 22.95 22.9388 25.5938 19.6875 25.5938Z"
+                  fill="#F5F4F0"
+                />
+                <path
+                  d="M10.125 25.5938H7.3125C4.06125 25.5938 1.40625 22.95 1.40625 19.6875V16.875C1.40625 16.4138 1.78875 16.0312 2.25 16.0312C2.71125 16.0312 3.09375 16.4138 3.09375 16.875V19.6875C3.09375 22.0162 4.98375 23.9062 7.3125 23.9062H10.125C10.5862 23.9062 10.9688 24.2888 10.9688 24.75C10.9688 25.2112 10.5862 25.5938 10.125 25.5938Z"
+                  fill="#F5F4F0"
+                />
+                <path
+                  d="M15.75 20.5312H11.25C8.5275 20.5312 7.03125 19.035 7.03125 16.3125V10.6875C7.03125 7.965 8.5275 6.46875 11.25 6.46875H15.75C18.4725 6.46875 19.9688 7.965 19.9688 10.6875V16.3125C19.9688 19.035 18.4725 20.5312 15.75 20.5312ZM11.25 8.15625C9.4725 8.15625 8.71875 8.91 8.71875 10.6875V16.3125C8.71875 18.09 9.4725 18.8438 11.25 18.8438H15.75C17.5275 18.8438 18.2812 18.09 18.2812 16.3125V10.6875C18.2812 8.91 17.5275 8.15625 15.75 8.15625H11.25Z"
+                  fill="#F5F4F0"
+                />
+                <path
+                  d="M21.375 14.3438H5.625C5.16375 14.3438 4.78125 13.9612 4.78125 13.5C4.78125 13.0388 5.16375 12.6562 5.625 12.6562H21.375C21.8362 12.6562 22.2188 13.0388 22.2188 13.5C22.2188 13.9612 21.8362 14.3438 21.375 14.3438Z"
+                  fill="#F5F4F0"
+                />
+              </svg>
             </div>
           </Link>
 
           {/* Products */}
           <Link
-            href="/consumer/products"
+            href="/user/history"
             className="flex flex-col items-center flex-1"
           >
             <div
@@ -210,7 +238,12 @@ export function BottomNav({ userType }: BottomNavProps) {
                 isActive("/consumer/products") ? "text-primary" : "text-gray"
               }`}
             >
-              <Package size={20} />
+              <Image
+                src="/products.svg"
+                alt="Products"
+                width={20}
+                height={20}
+              />
             </div>
           </Link>
 
@@ -224,7 +257,7 @@ export function BottomNav({ userType }: BottomNavProps) {
                 isActive("/consumer/profile") ? "text-primary" : "text-gray"
               }`}
             >
-              <User size={20} />
+              <Image src="/profile.svg" alt="Profile" width={20} height={20} />
             </div>
           </Link>
         </div>

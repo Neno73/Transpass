@@ -1,171 +1,194 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useState } from 'react';
-import { Button } from '../../../components/ui/Button';
-import AuthProtection from '../../../components/AuthProtection';
-import { useAuth } from '../../../lib/AuthContext';
-import { signOut } from '../../../lib/auth';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "../../../components/ui/Button";
+import AuthProtection from "../../../components/AuthProtection";
+import { useAuth } from "../../../lib/AuthContext";
+import { updateUserProfile } from "../../../lib/auth";
+import { BottomNav } from "../../../components/ui/Navigation";
+import { ArrowLeft, Check } from "lucide-react";
 
 export default function UserProfilePage() {
-  const { user, userData } = useAuth();
+  const { user, userData, refreshUserData } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [formSubmitted, setFormSubmitted] = useState(false);
   const [formData, setFormData] = useState({
-    displayName: userData?.displayName || '',
-    email: userData?.email || '',
+    displayName: "",
+    email: "",
+    phone: "",
   });
-  
-  const handleSignOut = async () => {
+
+  // Initialize form with user data when available
+  useEffect(() => {
+    if (userData) {
+      setFormData({
+        displayName: userData.displayName || "",
+        email: userData.email || "",
+        phone: userData.phone || "",
+      });
+    }
+  }, [userData]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
     setIsLoading(true);
     try {
-      await signOut();
-      router.push('/auth/login');
+      await updateUserProfile(user, {
+        displayName: formData.displayName,
+        phone: formData.phone,
+      });
+
+      // Refresh user data to reflect changes
+      await refreshUserData();
+      setFormSubmitted(true);
+
+      // Reset form submission status after 3 seconds
+      setTimeout(() => {
+        setFormSubmitted(false);
+      }, 3000);
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error("Error updating profile:", error);
     } finally {
       setIsLoading(false);
     }
   };
-  
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-  };
-  
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Update profile logic would go here
-    alert('Profile update functionality would go here');
-  };
 
   return (
     <AuthProtection userOnly>
-      <div className="min-h-screen bg-primary-lightest">
-        <header className="bg-white shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
-              <div className="flex">
-                <div className="flex-shrink-0 flex items-center">
-                  <Link href="/" className="inline-flex items-center">
-                    <svg width="32" height="32" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect width="60" height="60" rx="8" fill="#3D4EAD" fillOpacity="0.2"/>
-                      <circle cx="12" cy="12" r="6" fill="#3D4EAD"/>
-                      <circle cx="30" cy="12" r="6" fill="#3D4EAD"/>
-                      <circle cx="48" cy="12" r="6" fill="#3D4EAD"/>
-                      <circle cx="12" cy="30" r="6" fill="#3D4EAD"/>
-                      <circle cx="30" cy="30" r="6" fill="#FFFFFF"/>
-                      <circle cx="48" cy="30" r="6" fill="#3D4EAD"/>
-                      <circle cx="12" cy="48" r="6" fill="#3D4EAD"/>
-                      <circle cx="30" cy="48" r="6" fill="#3D4EAD"/>
-                      <circle cx="48" cy="48" r="6" fill="#3D4EAD"/>
-                    </svg>
-                    <span className="ml-2 text-xl font-bold text-primary">Transpass</span>
-                  </Link>
-                </div>
-                <nav className="ml-6 flex space-x-8">
-                  <Link
-                    href="/user/dashboard"
-                    className="border-transparent text-gray hover:text-gray-dark hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    href="/user/history"
-                    className="border-transparent text-gray hover:text-gray-dark hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                  >
-                    Scan History
-                  </Link>
-                  <Link
-                    href="/scan"
-                    className="border-transparent text-gray hover:text-gray-dark hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                  >
-                    Scan
-                  </Link>
-                </nav>
-              </div>
-              <div className="flex items-center">
-                <div className="ml-3 relative flex items-center space-x-4">
-                  <div className="text-sm font-medium text-gray-dark">
-                    {userData?.displayName || 'User'}
-                  </div>
-                  <div className="h-8 w-8 rounded-full bg-primary-lightest flex items-center justify-center text-primary font-medium">
-                    {userData?.displayName ? userData.displayName.charAt(0) : 'U'}
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handleSignOut}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'Signing out...' : 'Sign out'}
-                  </Button>
-                </div>
+      <div className="min-h-screen bg-primary-lightest pb-20 mx-auto max-w-2xl">
+        {/* Header */}
+        <header>
+          <div className="max-w-4xl mx-auto px-4 py-3">
+            <button
+              onClick={() => router.back()}
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-white transition-colors"
+              aria-label="Go back"
+            >
+              <ArrowLeft size={20} className="text-gray-600" />
+            </button>
+            <div className="flex items-center justify-center">
+              <div className="bg-white p-4 px-6 rounded-full mr-4">
+                <h1 className="text-background-dark font-medium truncate">
+                  Your Profile
+                </h1>
               </div>
             </div>
           </div>
         </header>
 
-        <main className="py-10">
-          <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            {/* Page header */}
-            <div className="px-4 sm:px-0 mb-8">
-              <h1 className="text-2xl font-bold text-gray-dark">Your Profile</h1>
-              <p className="mt-1 text-sm text-gray">
-                Update your profile information
+        <main className="p-4 max-w-4xl mx-auto w-full">
+          {/* Success message */}
+          {formSubmitted && (
+            <div className="mb-6 rounded-xl bg-green-50 p-4 flex items-center">
+              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                <Check size={18} className="text-green-600" />
+              </div>
+              <p className="text-green-800 font-medium">
+                Profile updated successfully
               </p>
             </div>
+          )}
 
-            {/* Profile form */}
-            <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-              <div className="px-4 py-5 sm:p-6">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div>
-                    <label htmlFor="displayName" className="block text-sm font-medium text-gray-dark">
-                      Display Name
-                    </label>
-                    <input
-                      type="text"
-                      name="displayName"
-                      id="displayName"
-                      value={formData.displayName}
-                      onChange={handleChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-dark">
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      id="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      disabled
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-50"
-                    />
-                    <p className="mt-1 text-sm text-gray">
-                      Email cannot be changed
-                    </p>
-                  </div>
-
-                  <div className="pt-5">
-                    <Button type="submit" className="w-full sm:w-auto">
-                      Save Changes
-                    </Button>
-                  </div>
-                </form>
+          {/* Profile form */}
+          <div className="bg-white shadow-md rounded-2xl overflow-hidden">
+            <div className="p-6 flex items-center border-b border-gray-100">
+              <div className="w-16 h-16 bg-primary-lightest rounded-full flex items-center justify-center mr-4">
+                <span className="text-primary text-2xl font-bold">
+                  {userData?.displayName?.charAt(0) || "U"}
+                </span>
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-dark">
+                  {userData?.displayName || "User"}
+                </h2>
+                <p className="text-gray text-sm mt-1">
+                  {userData?.email || "user@example.com"}
+                </p>
               </div>
             </div>
+
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="displayName"
+                    className="block text-sm font-medium text-gray-dark mb-1"
+                  >
+                    Display Name
+                  </label>
+                  <input
+                    type="text"
+                    name="displayName"
+                    id="displayName"
+                    value={formData.displayName}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-dark mb-1"
+                  >
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    id="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-gray-50 text-gray focus:outline-none"
+                    disabled
+                  />
+                  <p className="mt-1 text-xs text-gray">
+                    Email cannot be changed
+                  </p>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="phone"
+                    className="block text-sm font-medium text-gray-dark mb-1"
+                  >
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    id="phone"
+                    placeholder="+1 (555) 123-4567"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 space-y-3">
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+            </form>
           </div>
         </main>
+
+        {/* Bottom Navigation */}
+        <div className="fixed bottom-0 left-0 right-0 z-40">
+          <BottomNav userType="consumer" />
+        </div>
       </div>
     </AuthProtection>
   );
