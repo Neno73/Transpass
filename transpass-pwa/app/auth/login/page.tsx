@@ -186,7 +186,14 @@ export default function LoginPage() {
     <div className="min-h-screen bg-white flex flex-col justify-center py-12 px-12 md:px-0 ">
       <div className="max-w-[1200px] mx-auto">
         <div className="flex flex-col items-center justify-center mb-4">
-          <Image src="/logo.svg" alt="Transpass" width={80} height={80} />
+          <Image
+            src="/logo.svg"
+            alt="Transpass"
+            width={80}
+            height={80}
+            className="cursor-pointer"
+            onClick={() => router.push("/")}
+          />
           <h2 className="text-3xl mt-2 font-bold text-primary">TransPass</h2>
           <h3 className="text-xl mt-6 mb-2 font-medium text-center text-gray-dark">
             Welcome Back
