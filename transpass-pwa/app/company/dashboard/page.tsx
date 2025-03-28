@@ -169,7 +169,10 @@ export default function CompanyDashboard() {
               </div>
             </div>
 
-            <Button className="z-10 relative w-full my-8 mb-12">
+            <Button
+              className="z-10 relative w-full my-8 mb-12"
+              onClick={() => router.push("/company/products/create")}
+            >
               Create product
             </Button>
 

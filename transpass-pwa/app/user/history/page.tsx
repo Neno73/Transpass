@@ -1,26 +1,37 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useState, useEffect } from 'react';
-import { Button } from '../../../components/ui/Button';
-import AuthProtection from '../../../components/AuthProtection';
-import { useAuth } from '../../../lib/AuthContext';
-import { getUserScanHistory, ScanHistoryRecord } from '../../../lib/products';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "../../../components/ui/Button";
+import AuthProtection from "../../../components/AuthProtection";
+import { useAuth } from "../../../lib/AuthContext";
+import { getUserScanHistory, ScanHistoryRecord } from "../../../lib/products";
+import { BottomNav } from "../../../components/ui/Navigation";
+import { ArrowLeft, Clock, Search } from "lucide-react";
+import { ScanCard } from "../../../components/ui/ScanCard";
+import Link from "next/link";
+import Image from "next/image";
 
 export default function ScanHistoryPage() {
-  const { user, userData } = useAuth();
+  const { user } = useAuth();
+  const router = useRouter();
   const [scanHistory, setScanHistory] = useState<ScanHistoryRecord[]>([]);
+  const [filteredHistory, setFilteredHistory] = useState<ScanHistoryRecord[]>(
+    []
+  );
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   useEffect(() => {
     const fetchScanHistory = async () => {
       if (!user) return;
-      
+
       try {
         setLoading(true);
         const history = await getUserScanHistory(user.uid);
         setScanHistory(history);
+        setFilteredHistory(history);
       } catch (err) {
         console.error("Error fetching scan history:", err);
         setError("Failed to load scan history. Please try again later.");
@@ -28,156 +39,214 @@ export default function ScanHistoryPage() {
         setLoading(false);
       }
     };
-    
+
     fetchScanHistory();
   }, [user]);
 
+  // Handle search
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredHistory(scanHistory);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const filtered = scanHistory.filter(
+      (scan) =>
+        scan.productName?.toLowerCase().includes(query) ||
+        scan.manufacturer?.toLowerCase().includes(query) ||
+        scan.model?.toLowerCase().includes(query)
+    );
+    setFilteredHistory(filtered);
+  }, [searchQuery, scanHistory]);
+
+  // Format time ago function
+  const formatTimeAgo = (date: Date) => {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (diffInSeconds < 60) {
+      return `${diffInSeconds} seconds ago`;
+    }
+
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes} ${
+        diffInMinutes === 1 ? "minute" : "minutes"
+      } ago`;
+    }
+
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) {
+      return `${diffInHours} ${diffInHours === 1 ? "hour" : "hours"} ago`;
+    }
+
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 30) {
+      return `${diffInDays} ${diffInDays === 1 ? "day" : "days"} ago`;
+    }
+
+    const diffInMonths = Math.floor(diffInDays / 30);
+    return `${diffInMonths} ${diffInMonths === 1 ? "month" : "months"} ago`;
+  };
+
   return (
     <AuthProtection userOnly>
-      <div className="min-h-screen bg-primary-lightest">
-        <header className="bg-white shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
-              <div className="flex">
-                <div className="flex-shrink-0 flex items-center">
-                  <Link href="/" className="inline-flex items-center">
-                    <svg width="32" height="32" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect width="60" height="60" rx="8" fill="#3D4EAD" fillOpacity="0.2"/>
-                      <circle cx="12" cy="12" r="6" fill="#3D4EAD"/>
-                      <circle cx="30" cy="12" r="6" fill="#3D4EAD"/>
-                      <circle cx="48" cy="12" r="6" fill="#3D4EAD"/>
-                      <circle cx="12" cy="30" r="6" fill="#3D4EAD"/>
-                      <circle cx="30" cy="30" r="6" fill="#FFFFFF"/>
-                      <circle cx="48" cy="30" r="6" fill="#3D4EAD"/>
-                      <circle cx="12" cy="48" r="6" fill="#3D4EAD"/>
-                      <circle cx="30" cy="48" r="6" fill="#3D4EAD"/>
-                      <circle cx="48" cy="48" r="6" fill="#3D4EAD"/>
-                    </svg>
-                    <span className="ml-2 text-xl font-bold text-primary">Transpass</span>
-                  </Link>
-                </div>
-                <nav className="ml-6 flex space-x-8">
-                  <Link
-                    href="/user/dashboard"
-                    className="border-transparent text-gray hover:text-gray-dark hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    href="/user/history"
-                    className="border-b-2 border-primary text-primary inline-flex items-center px-1 pt-1 text-sm font-medium"
-                  >
-                    Scan History
-                  </Link>
-                  <Link
-                    href="/scan"
-                    className="border-transparent text-gray hover:text-gray-dark hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                  >
-                    Scan
-                  </Link>
-                </nav>
+      <div className="min-h-screen bg-primary-lightest pb-20 mx-auto max-w-2xl relative overflow-hidden">
+        {/* Decorative background elements */}
+        <div className="absolute top-0 right-0 opacity-10 pointer-events-none">
+          <Image
+            src="/logo-icon.svg"
+            alt="Decorative logo"
+            width={300}
+            height={300}
+          />
+        </div>
+        <div className="absolute bottom-20 -left-20 opacity-10 pointer-events-none rotate-45">
+          <Image
+            src="/logo-icon.svg"
+            alt="Decorative logo"
+            width={200}
+            height={200}
+          />
+        </div>
+        <div className="absolute top-1/3 -left-10 opacity-5 pointer-events-none">
+          <Image
+            src="/logo-icon.svg"
+            alt="Decorative logo"
+            width={150}
+            height={150}
+          />
+        </div>
+
+        {/* Header */}
+        <header>
+          <div className="max-w-4xl mx-auto px-4 pt-3">
+            <button
+              onClick={() => router.back()}
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-white transition-colors"
+              aria-label="Go back"
+            >
+              <ArrowLeft size={20} className="text-gray-600" />
+            </button>
+            <div className="flex items-center justify-center">
+              <div className="bg-white p-4 mt-4 px-6 rounded-full w-full text-center">
+                <h1 className="text-background-dark font-medium">
+                  My Scans {scanHistory.length > 0 && `(${scanHistory.length})`}
+                </h1>
               </div>
             </div>
           </div>
         </header>
 
-        <main className="py-10">
-          <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            {/* Page header */}
-            <div className="px-4 sm:px-0 mb-8">
-              <h1 className="text-2xl font-bold text-gray-dark">Scan History</h1>
-              <p className="mt-1 text-sm text-gray">
-                Your history of scanned products
-              </p>
-            </div>
-
-            {/* Scan history */}
-            <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-              {error && (
-                <div className="p-4 bg-red-50 border-l-4 border-red-400 text-red-700">
-                  <p>{error}</p>
-                </div>
+        <main className="p-4 max-w-4xl mx-auto w-full relative z-10">
+          {/* Search field */}
+          <div className="mb-6">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search size={18} className="text-gray" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search scans..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              />
+              {searchQuery && (
+                <button
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setSearchQuery("")}
+                >
+                  <span className="text-gray hover:text-gray-dark">✕</span>
+                </button>
               )}
-              
-              {loading ? (
-                <div className="py-12 px-6 text-center">
-                  <div className="w-12 h-12 border-4 border-primary-light border-t-primary rounded-full animate-spin mx-auto"></div>
-                  <p className="mt-4 text-gray">Loading scan history...</p>
-                </div>
-              ) : scanHistory.length > 0 ? (
+            </div>
+          </div>
+
+          {error && (
+            <div className="mb-6 rounded-xl bg-red-50 p-4">
+              <p className="text-red-800">{error}</p>
+            </div>
+          )}
+
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="w-16 h-16 border-4 border-primary-light border-t-primary rounded-full animate-spin"></div>
+              <p className="mt-4 text-gray">Loading scan history...</p>
+            </div>
+          ) : (
+            <div>
+              {scanHistory.length > 0 ? (
                 <div>
-                  <ul className="divide-y divide-gray-200">
-                    {scanHistory.map((scan) => (
-                      <li key={scan.id}>
-                        <Link 
-                          href={`/p/${scan.productId}`}
-                          className="block hover:bg-primary-lightest transition"
-                        >
-                          <div className="px-4 py-4 sm:px-6 flex items-center">
-                            <div className="min-w-0 flex-1 flex items-center">
-                              <div className="flex-shrink-0 h-12 w-12 bg-primary-lightest rounded-md flex items-center justify-center overflow-hidden">
-                                {scan.imageUrl ? (
-                                  <img src={scan.imageUrl} alt={scan.productName} className="h-full w-full object-cover" />
-                                ) : (
-                                  <span className="text-primary font-medium">{scan.productName?.charAt(0) || 'P'}</span>
-                                )}
-                              </div>
-                              <div className="min-w-0 flex-1 px-4">
-                                <div>
-                                  <p className="text-sm font-medium text-primary truncate">{scan.productName || 'Product'}</p>
-                                  <p className="mt-1 flex items-center text-sm text-gray">
-                                    <span className="truncate">
-                                      Scanned: {scan.scannedAt?.toDate ? 
-                                        scan.scannedAt.toDate().toLocaleString() : 
-                                        new Date(scan.scannedAt).toLocaleString()}
-                                    </span>
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="ml-5 flex-shrink-0">
-                              <svg className="h-5 w-5 text-gray" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                              </svg>
-                            </div>
-                          </div>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                  
-                  <div className="p-4 text-center">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center">
+                      <Clock size={18} className="text-gray mr-2" />
+                      <h2 className="text-lg font-medium text-gray-dark">
+                        Recent Scans
+                      </h2>
+                    </div>
+                    {filteredHistory.length !== scanHistory.length && (
+                      <span className="text-sm text-gray">
+                        Showing {filteredHistory.length} of {scanHistory.length}
+                      </span>
+                    )}
+                  </div>
+
+                  {filteredHistory.length > 0 ? (
+                    <div className="grid grid-cols-2 gap-4">
+                      {filteredHistory.map((scan) => (
+                        <ScanCard
+                          key={scan.id}
+                          scan={scan}
+                          formatTimeAgo={formatTimeAgo}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="bg-white rounded-2xl shadow-md overflow-hidden p-6 text-center">
+                      <p className="text-gray">No results match your search.</p>
+                      <button
+                        onClick={() => setSearchQuery("")}
+                        className="mt-2 text-primary hover:underline"
+                      >
+                        Clear search
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="mt-8 text-center">
                     <Link href="/scan">
-                      <Button>
-                        Scan Another Product
-                      </Button>
+                      <Button>Scan Another Product</Button>
                     </Link>
                   </div>
                 </div>
               ) : (
-                <div className="py-12 px-6 text-center">
-                  <svg className="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <h3 className="mt-2 text-sm font-medium text-gray-dark">No scan history</h3>
-                  <p className="mt-1 text-sm text-gray">
-                    You haven't scanned any products yet.
-                  </p>
-                  <div className="mt-6">
+                <div className="bg-white rounded-2xl shadow-md overflow-hidden">
+                  <div className="p-8 text-center">
+                    <div className="w-16 h-16 bg-primary-lightest rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Clock size={24} className="text-primary" />
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-dark mb-2">
+                      No scan history
+                    </h3>
+                    <p className="text-gray mb-6">
+                      You haven&apos;t scanned any products yet.
+                    </p>
                     <Link href="/scan">
-                      <Button size="sm" className="inline-flex items-center">
-                        <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm2 2V5h1v1H5zm9-2a1 1 0 00-1 1v3a1 1 0 001 1h3a1 1 0 001-1V4a1 1 0 00-1-1h-3zm1 2h1v1h-1V5zM3 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3zm2 2v-1h1v1H5zm9-2a1 1 0 00-1 1v3a1 1 0 001 1h3a1 1 0 001-1v-3a1 1 0 00-1-1h-3zm1 2h1v1h-1v-1z" clipRule="evenodd" />
-                        </svg>
-                        Scan a product
-                      </Button>
+                      <Button>Scan Your First Product</Button>
                     </Link>
                   </div>
                 </div>
               )}
             </div>
-          </div>
+          )}
         </main>
+
+        {/* Bottom Navigation */}
+        <div className="fixed bottom-0 left-0 right-0 z-40">
+          <BottomNav userType="consumer" />
+        </div>
       </div>
     </AuthProtection>
   );
