@@ -1,242 +1,273 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { Button } from '../../../../components/ui/Button';
-import { getProduct, updateProduct, deleteProduct, Product } from '../../../../lib/products';
-import { useRouter } from 'next/navigation';
-import ProductQRCode from '../../../../components/ui/ProductQRCode';
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { Button } from "../../../../components/ui/Button";
+import { BottomNav } from "../../../../components/ui/Navigation";
+import {
+  getProduct,
+  updateProduct,
+  deleteProduct,
+} from "../../../../lib/products";
+import AuthProtection from "../../../../components/AuthProtection";
+import { ArrowLeft, Edit, Trash2 } from "lucide-react";
+import ProductQRCode from "../../../../components/ui/ProductQRCode";
 
-export default function ProductDetailPage({ params }: { params: { id: string } }) {
+export default function ProductDetailPage(props: { params: { id: string } }) {
   const router = useRouter();
-  const [product, setProduct] = useState<Product | null>(null);
+  const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [activeTab, setActiveTab] = useState("details");
   const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState('details');
-  const [componentFilter, setComponentFilter] = useState('all');
-  const [componentSortBy, setComponentSortBy] = useState('name');
-  
-  // Use React.use() to safely access params
-  const productId = React.use(params).id;
-  
-  // Function to switch tabs and update URL
-  const switchTab = (tab: string) => {
-    setActiveTab(tab);
-    // Update URL query parameter without full page navigation
-    const url = new URL(window.location.href);
-    url.searchParams.set('tab', tab);
-    window.history.pushState({}, '', url);
-  };
-  const [editData, setEditData] = useState<Partial<Product>>({});
+  const [editData, setEditData] = useState<any>({});
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [componentFilter, setComponentFilter] = useState("all");
+  const [editingComponent, setEditingComponent] = useState<any>(null);
+  const [editingComponentIndex, setEditingComponentIndex] = useState<
+    number | null
+  >(null);
 
+  const params = React.use(props.params);
+
+  // Fetch product data
   useEffect(() => {
-    const fetchProduct = async () => {
+    async function loadProduct() {
       try {
-        const productData = await getProduct(productId);
-        setProduct(productData);
-        setEditData(productData || {});
-        
-        // Check if there's a tab query parameter and set the active tab
-        const urlParams = new URLSearchParams(window.location.search);
-        const tabParam = urlParams.get('tab');
-        if (tabParam && ['details', 'components', 'analytics'].includes(tabParam)) {
-          setActiveTab(tabParam);
+        const productData = await getProduct(params.id);
+        if (productData) {
+          setProduct(productData);
+          setEditData({ ...productData });
+        } else {
+          setError("Product not found");
         }
-      } catch (error) {
-        console.error('Error fetching product:', error);
+      } catch (err) {
+        console.error("Error loading product:", err);
+        setError("Failed to load product data");
       } finally {
         setLoading(false);
       }
-    };
+    }
 
-    fetchProduct();
-  }, [productId]);
+    loadProduct();
+  }, [params.id]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
     const { name, value } = e.target;
-    setEditData({
-      ...editData,
-      [name]: value
-    });
+    setEditData({ ...editData, [name]: value });
   };
 
   const handleSave = async () => {
-    if (!product) return;
-    
     try {
-      setLoading(true);
-      const updatedProduct = await updateProduct(product.id!, editData);
-      setProduct(updatedProduct);
+      await updateProduct(params.id, editData);
+      setProduct(editData);
       setIsEditing(false);
-    } catch (error) {
-      console.error('Error updating product:', error);
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      console.error("Error updating product:", err);
+      setError("Failed to update product");
     }
   };
 
   const handleDelete = async () => {
-    if (!product) return;
-    
     try {
-      setLoading(true);
-      await deleteProduct(product.id!);
-      router.push('/company/dashboard');
-    } catch (error) {
-      console.error('Error deleting product:', error);
-      setLoading(false);
+      await deleteProduct(params.id);
+      router.push("/company/products");
+    } catch (err) {
+      console.error("Error deleting product:", err);
+      setError("Failed to delete product");
     }
   };
 
-  const handleAddComponent = () => {
-    if (!product) return;
-    
-    router.push(`/company/products/${product.id}/components/add`);
-  };
-  
   const handleEditComponent = (index: number) => {
-    if (!product) return;
-    
-    router.push(`/company/products/${product.id}/components/${index}/edit`);
+    setEditingComponentIndex(index);
+    setEditingComponent({ ...product.components[index] });
   };
-  
-  const handleDeleteComponent = async (index: number) => {
-    if (!product || !product.components) return;
-    
-    setLoading(true);
-    
-    try {
-      // Create a copy of the components array and remove the component at the specified index
-      const updatedComponents = [...product.components];
-      updatedComponents.splice(index, 1);
-      
-      // Update the product with the new components array
-      const updatedProduct = await updateProduct(product.id!, {
-        components: updatedComponents
-      });
-      
-      setProduct(updatedProduct);
-    } catch (error) {
-      console.error('Error deleting component:', error);
-    } finally {
-      setLoading(false);
-    }
+
+  const handleDeleteComponent = (index: number) => {
+    const updatedComponents = [...product.components];
+    updatedComponents.splice(index, 1);
+
+    const updatedProduct = { ...product, components: updatedComponents };
+    setProduct(updatedProduct);
+    setEditData(updatedProduct);
+
+    // Save to database
+    updateProduct(params.id, updatedProduct).catch((err) => {
+      console.error("Error updating product components:", err);
+      setError("Failed to delete component");
+    });
+  };
+
+  const switchTab = (tab: string) => {
+    setActiveTab(tab);
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-primary-lightest flex flex-col items-center justify-center">
-        <div className="w-16 h-16 border-4 border-primary-light border-t-primary rounded-full animate-spin"></div>
-        <p className="mt-4 text-gray">Loading product information...</p>
-      </div>
+      <AuthProtection companyOnly>
+        <div className="min-h-screen bg-white pb-20 p-4 max-w-xl mx-auto">
+          <Image
+            src="/background-grey-logo.svg"
+            alt="Background pattern"
+            width={1000}
+            height={1000}
+            className="absolute top-0 right-0 z-0"
+          />
+          <main className="max-w-2xl mx-auto px-4 py-6 z-10 relative">
+            <div className="flex justify-center mb-8">
+              <Image
+                src="/logo.svg"
+                alt="TransPass Logo"
+                width={150}
+                height={40}
+                className="h-10 w-auto"
+              />
+            </div>
+            <div className="flex justify-center items-center h-64">
+              <div className="w-16 h-16 border-4 border-primary-light border-t-primary rounded-full animate-spin"></div>
+            </div>
+          </main>
+        </div>
+      </AuthProtection>
     );
   }
 
-  if (!product) {
+  if (error) {
     return (
-      <div className="min-h-screen bg-primary-lightest flex flex-col items-center justify-center p-4">
-        <div className="bg-white p-6 rounded-xl shadow-md max-w-md w-full text-center">
-          <h1 className="text-2xl font-bold text-gray-dark mb-4">Product Not Found</h1>
-          <p className="text-gray mb-6">The product you are looking for could not be found.</p>
-          <Link href="/company/dashboard">
-            <Button>Return to Dashboard</Button>
-          </Link>
+      <AuthProtection companyOnly>
+        <div className="min-h-screen bg-white pb-20 p-4 max-w-xl mx-auto">
+          <Image
+            src="/background-grey-logo.svg"
+            alt="Background pattern"
+            width={1000}
+            height={1000}
+            className="absolute top-0 right-0 z-0"
+          />
+          <main className="max-w-2xl mx-auto px-4 py-6 z-10 relative">
+            <div className="flex justify-center mb-8">
+              <Image
+                src="/logo.svg"
+                alt="TransPass Logo"
+                width={150}
+                height={40}
+                className="h-10 w-auto"
+              />
+            </div>
+            <div className="bg-red-50 p-4 rounded-lg text-red-700 text-center">
+              <p>{error}</p>
+              <Button
+                variant="outline"
+                className="mt-4"
+                onClick={() => router.push("/company/products")}
+              >
+                Back to Products
+              </Button>
+            </div>
+          </main>
         </div>
-      </div>
+      </AuthProtection>
     );
   }
 
   return (
-    <div className="min-h-screen bg-primary-lightest">
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex">
-              <div className="flex-shrink-0 flex items-center">
-                <Link href="/" className="inline-flex items-center">
-                  <svg width="32" height="32" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect width="60" height="60" rx="8" fill="#3D4EAD" fillOpacity="0.2"/>
-                    <circle cx="12" cy="12" r="6" fill="#3D4EAD"/>
-                    <circle cx="30" cy="12" r="6" fill="#3D4EAD"/>
-                    <circle cx="48" cy="12" r="6" fill="#3D4EAD"/>
-                    <circle cx="12" cy="30" r="6" fill="#3D4EAD"/>
-                    <circle cx="30" cy="30" r="6" fill="#FFFFFF"/>
-                    <circle cx="48" cy="30" r="6" fill="#3D4EAD"/>
-                    <circle cx="12" cy="48" r="6" fill="#3D4EAD"/>
-                    <circle cx="30" cy="48" r="6" fill="#3D4EAD"/>
-                    <circle cx="48" cy="48" r="6" fill="#3D4EAD"/>
-                  </svg>
-                  <span className="ml-2 text-xl font-bold text-primary">Transpass</span>
-                </Link>
-              </div>
-              <nav className="ml-6 flex space-x-8">
-                <Link
-                  href="/company/dashboard"
-                  className="border-transparent text-gray hover:text-gray-dark hover:border-gray-300 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  href="/company/products"
-                  className="border-primary text-primary inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                >
-                  Products
-                </Link>
-              </nav>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="py-10">
-        <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-          {/* Page header */}
-          <div className="px-4 sm:px-0 mb-8 flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-dark">{product.name}</h1>
-              <p className="mt-1 text-sm text-gray">
-                Product ID: {product.id}
-              </p>
-            </div>
-            <div className="flex space-x-3">
-              {isEditing ? (
-                <>
-                  <Button variant="outline" onClick={() => setIsEditing(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleSave}>
-                    Save Changes
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button 
-                    variant="outline" 
-                    className="text-red-600 border-red-600 hover:bg-red-50"
-                    onClick={() => setDeleteConfirm(true)}
-                  >
-                    Delete
-                  </Button>
-                  <Button onClick={() => setIsEditing(true)}>
-                    Edit Product
-                  </Button>
-                </>
-              )}
-            </div>
+    <AuthProtection companyOnly>
+      <div className="min-h-screen bg-white pb-20 p-4 max-w-xl mx-auto">
+        <Image
+          src="/background-grey-logo.svg"
+          alt="Background pattern"
+          width={1000}
+          height={1000}
+          className="absolute top-0 right-0 z-0"
+        />
+        <main className="max-w-2xl mx-auto px-4 py-6 z-10 relative">
+          {/* Back button */}
+          <div className="mb-6">
+            <button
+              onClick={() => router.push("/company/products")}
+              className="flex items-center text-gray-dark hover:text-primary"
+            >
+              <ArrowLeft size={20} className="mr-2" />
+              <span>Back to Products</span>
+            </button>
           </div>
 
+          {/* Logo */}
+          <div className="flex justify-center mb-8">
+            <Image
+              src="/logo.svg"
+              alt="TransPass Logo"
+              width={150}
+              height={40}
+              className="h-10 w-auto"
+            />
+          </div>
+
+          {/* Product header */}
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-primary text-center">
+              {product.name}
+            </h1>
+            <p className="mt-1 text-sm text-gray text-center">
+              Product ID: {product.id}
+            </p>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex justify-center space-x-4 mb-8">
+            {isEditing ? (
+              <>
+                <Button variant="outline" onClick={() => setIsEditing(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSave}>Save Changes</Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsEditing(true)}
+                  className="flex items-center"
+                >
+                  <Edit size={16} className="mr-2" />
+                  Edit
+                </Button>
+                <Button
+                  variant="outline"
+                  className="text-red-600 border-red-600 hover:bg-red-50 flex items-center"
+                  onClick={() => setDeleteConfirm(true)}
+                >
+                  <Trash2 size={16} className="mr-2" />
+                  Delete
+                </Button>
+              </>
+            )}
+          </div>
+
+          {/* Delete confirmation modal */}
           {deleteConfirm && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
               <div className="bg-white rounded-lg p-6 max-w-md w-full">
-                <h3 className="text-lg font-medium text-gray-dark mb-4">Confirm Delete</h3>
-                <p className="text-gray mb-6">Are you sure you want to delete this product? This action cannot be undone.</p>
+                <h3 className="text-lg font-medium text-gray-dark mb-4">
+                  Confirm Delete
+                </h3>
+                <p className="text-gray mb-6">
+                  Are you sure you want to delete this product? This action
+                  cannot be undone.
+                </p>
                 <div className="flex justify-end space-x-3">
-                  <Button variant="outline" onClick={() => setDeleteConfirm(false)}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setDeleteConfirm(false)}
+                  >
                     Cancel
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="text-red-600 border-red-600 hover:bg-red-50"
                     onClick={handleDelete}
                   >
@@ -247,490 +278,326 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             </div>
           )}
 
-          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-            {/* Tabs */}
-            <div className="border-b border-gray-200">
-              <div className="px-4 sm:px-6 flex space-x-8">
-                <button
-                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'details'
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-gray hover:text-gray-dark hover:border-gray-300'
-                  }`}
-                  onClick={() => switchTab('details')}
-                >
-                  Product Details
-                </button>
-                <button
-                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'components'
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-gray hover:text-gray-dark hover:border-gray-300'
-                  }`}
-                  onClick={() => switchTab('components')}
-                >
-                  Components
-                </button>
-                <button
-                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'analytics'
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-gray hover:text-gray-dark hover:border-gray-300'
-                  }`}
-                  onClick={() => switchTab('analytics')}
-                >
-                  Analytics
-                </button>
-              </div>
-            </div>
+          {/* Tabs */}
+          <div className="border-b border-gray-200 mb-6">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => switchTab("details")}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === "details"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-gray hover:text-gray-dark hover:border-gray-300"
+                }`}
+              >
+                Details
+              </button>
+              <button
+                onClick={() => switchTab("components")}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === "components"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-gray hover:text-gray-dark hover:border-gray-300"
+                }`}
+              >
+                Components
+              </button>
+              <button
+                onClick={() => switchTab("analytics")}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === "analytics"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-gray hover:text-gray-dark hover:border-gray-300"
+                }`}
+              >
+                Analytics
+              </button>
+            </nav>
+          </div>
 
-            {/* Tab content */}
-            <div className="px-4 py-5 sm:p-6">
-              {activeTab === 'details' && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                    <div>
-                      <label htmlFor="name" className="block text-sm font-medium text-gray-dark">
-                        Product Name
-                      </label>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          name="name"
-                          id="name"
-                          value={editData.name || ''}
-                          onChange={handleChange}
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
-                        />
-                      ) : (
-                        <p className="mt-1 text-sm text-gray-dark">{product.name}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label htmlFor="model" className="block text-sm font-medium text-gray-dark">
-                        Model
-                      </label>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          name="model"
-                          id="model"
-                          value={editData.model || ''}
-                          onChange={handleChange}
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
-                        />
-                      ) : (
-                        <p className="mt-1 text-sm text-gray-dark">{product.model}</p>
-                      )}
-                    </div>
-
-                    <div className="sm:col-span-2">
-                      <label htmlFor="description" className="block text-sm font-medium text-gray-dark">
-                        Description
-                      </label>
-                      {isEditing ? (
-                        <textarea
-                          id="description"
-                          name="description"
-                          rows={3}
-                          value={editData.description || ''}
-                          onChange={handleChange}
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
-                        />
-                      ) : (
-                        <p className="mt-1 text-sm text-gray-dark">{product.description}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label htmlFor="manufacturer" className="block text-sm font-medium text-gray-dark">
-                        Manufacturer
-                      </label>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          name="manufacturer"
-                          id="manufacturer"
-                          value={editData.manufacturer || ''}
-                          onChange={handleChange}
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
-                        />
-                      ) : (
-                        <p className="mt-1 text-sm text-gray-dark">{product.manufacturer}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label htmlFor="serialNumber" className="block text-sm font-medium text-gray-dark">
-                        Serial Number
-                      </label>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          name="serialNumber"
-                          id="serialNumber"
-                          value={editData.serialNumber || ''}
-                          onChange={handleChange}
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
-                        />
-                      ) : (
-                        <p className="mt-1 text-sm text-gray-dark">{product.serialNumber || 'N/A'}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label htmlFor="category" className="block text-sm font-medium text-gray-dark">
-                        Category
-                      </label>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          name="category"
-                          id="category"
-                          value={editData.category || ''}
-                          onChange={handleChange}
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
-                        />
-                      ) : (
-                        <p className="mt-1 text-sm text-gray-dark">{product.category || 'Uncategorized'}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label htmlFor="warrantyInfo" className="block text-sm font-medium text-gray-dark">
-                        Warranty Information
-                      </label>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          name="warrantyInfo"
-                          id="warrantyInfo"
-                          value={editData.warrantyInfo || ''}
-                          onChange={handleChange}
-                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
-                        />
-                      ) : (
-                        <p className="mt-1 text-sm text-gray-dark">{product.warrantyInfo || 'No warranty information'}</p>
-                      )}
-                    </div>
-                  </div>
-
+          {/* Tab content */}
+          <div className="bg-white rounded-lg shadow-sm">
+            {activeTab === "details" && (
+              <div className="p-6 space-y-6">
+                <div className="grid grid-cols-1 gap-6">
                   <div>
-                    <h3 className="text-lg font-medium text-gray-dark mb-3">Product Image</h3>
-                    {product.imageUrl ? (
-                      <div className="mt-2 relative">
-                        <img
-                          src={product.imageUrl}
-                          alt={product.name}
-                          className="max-w-md rounded-lg shadow"
-                        />
-                        {isEditing && (
-                          <div className="mt-2">
-                            <Button variant="outline" size="sm">
-                              Replace Image
-                            </Button>
-                          </div>
-                        )}
-                      </div>
+                    <label
+                      htmlFor="description"
+                      className="block text-sm font-medium text-gray-dark"
+                    >
+                      Description
+                    </label>
+                    {isEditing ? (
+                      <textarea
+                        id="description"
+                        name="description"
+                        rows={3}
+                        value={editData.description || ""}
+                        onChange={handleChange}
+                        className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
+                      />
                     ) : (
-                      <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                        <div className="space-y-1 text-center">
-                          <svg
-                            className="mx-auto h-12 w-12 text-gray"
-                            stroke="currentColor"
-                            fill="none"
-                            viewBox="0 0 48 48"
-                            aria-hidden="true"
-                          >
-                            <path
-                              d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4h-12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                              strokeWidth={2}
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                          <div className="flex text-sm text-gray">
-                            <label
-                              htmlFor="file-upload"
-                              className="relative cursor-pointer bg-white rounded-md font-medium text-primary hover:text-primary-dark focus-within:outline-none"
-                            >
-                              <span>Upload an image</span>
-                              <input id="file-upload" name="file-upload" type="file" className="sr-only" />
-                            </label>
-                            <p className="pl-1">or drag and drop</p>
-                          </div>
-                          <p className="text-xs text-gray">PNG, JPG, GIF up to 10MB</p>
-                        </div>
-                      </div>
+                      <p className="mt-1 text-sm text-gray-dark">
+                        {product.description}
+                      </p>
                     )}
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-medium text-gray-dark mb-3">QR Code</h3>
+                    <label
+                      htmlFor="manufacturer"
+                      className="block text-sm font-medium text-gray-dark"
+                    >
+                      Manufacturer
+                    </label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name="manufacturer"
+                        id="manufacturer"
+                        value={editData.manufacturer || ""}
+                        onChange={handleChange}
+                        className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
+                      />
+                    ) : (
+                      <p className="mt-1 text-sm text-gray-dark">
+                        {product.manufacturer}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="category"
+                      className="block text-sm font-medium text-gray-dark"
+                    >
+                      Category
+                    </label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name="category"
+                        id="category"
+                        value={editData.category || ""}
+                        onChange={handleChange}
+                        className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
+                      />
+                    ) : (
+                      <p className="mt-1 text-sm text-gray-dark">
+                        {product.category}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-dark">
+                      QR Code
+                    </h3>
                     {product.id && (
-                      <div className="mt-2">
-                        {/* Use the new ProductQRCode component */}
-                        <ProductQRCode 
-                          productId={product.id} 
+                      <div className="mt-2 bg-white p-4 rounded-lg shadow-sm">
+                        <ProductQRCode
+                          productId={product.id}
                           productName={product.name}
                         />
+                        <p className="mt-2 text-xs text-gray text-center">
+                          Scan to view product
+                        </p>
                       </div>
                     )}
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              {activeTab === 'components' && (
-                <div className="space-y-6">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-medium text-gray-dark">Components</h3>
-                    <Button onClick={handleAddComponent}>
+            {activeTab === "components" && (
+              <div className="p-6 space-y-6 bg-white rounded-lg shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+                  <h3 className="text-lg font-medium text-gray-dark">
+                    Components
+                  </h3>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <select
+                      value={componentFilter}
+                      onChange={(e) => setComponentFilter(e.target.value)}
+                      className="border border-gray-300 rounded-md text-sm py-2 px-3"
+                    >
+                      <option value="all">All Components</option>
+                      <option value="recyclable">Recyclable Only</option>
+                      <option value="non-recyclable">
+                        Non-Recyclable Only
+                      </option>
+                    </select>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setEditingComponentIndex(null);
+                        setEditingComponent({
+                          name: "",
+                          description: "",
+                          material: "",
+                          weight: 0,
+                          recyclable: false,
+                        });
+                      }}
+                    >
                       Add Component
                     </Button>
                   </div>
+                </div>
 
-                  {/* Filters and sorting */}
-                  {product.components && product.components.length > 0 && (
-                    <div className="flex flex-col sm:flex-row gap-4 mb-4">
-                      <div className="sm:w-1/2">
-                        <label htmlFor="componentFilter" className="block text-sm font-medium text-gray-dark mb-1">
-                          Filter components
-                        </label>
-                        <select
-                          id="componentFilter"
-                          value={componentFilter}
-                          onChange={(e) => setComponentFilter(e.target.value)}
-                          className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
-                        >
-                          <option value="all">All Components</option>
-                          <option value="recyclable">Recyclable Only</option>
-                          <option value="non-recyclable">Non-Recyclable Only</option>
-                          <option value="certified">With Certifications</option>
-                          <option value="uncertified">Without Certifications</option>
-                        </select>
-                      </div>
-                      <div className="sm:w-1/2">
-                        <label htmlFor="componentSortBy" className="block text-sm font-medium text-gray-dark mb-1">
-                          Sort by
-                        </label>
-                        <select
-                          id="componentSortBy"
-                          value={componentSortBy}
-                          onChange={(e) => setComponentSortBy(e.target.value)}
-                          className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
-                        >
-                          <option value="name">Name (A-Z)</option>
-                          <option value="name-desc">Name (Z-A)</option>
-                          <option value="weight">Weight (Low to High)</option>
-                          <option value="weight-desc">Weight (High to Low)</option>
-                        </select>
-                      </div>
+                {product.components && product.components.length > 0 ? (
+                  <div className="overflow-x-auto -mx-6">
+                    <div className="inline-block min-w-full align-middle px-6">
+                      <table className="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg overflow-hidden">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Name
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Material
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Recyclable
+                            </th>
+                            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Actions
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {product.components
+                            .filter((comp: any) => {
+                              if (componentFilter === "all") return true;
+                              if (componentFilter === "recyclable")
+                                return comp.recyclable;
+                              if (componentFilter === "non-recyclable")
+                                return !comp.recyclable;
+                              return true;
+                            })
+                            .map((component: any, idx: number) => (
+                              <tr key={idx}>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  {component.name}
+                                </td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {component.material}
+                                </td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {component.recyclable ? "Yes" : "No"}
+                                </td>
+                                <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                  <button
+                                    onClick={() => handleEditComponent(idx)}
+                                    className="text-primary hover:text-primary-dark mr-3"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteComponent(idx)}
+                                    className="text-red-600 hover:text-red-900"
+                                  >
+                                    Delete
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
                     </div>
-                  )}
-
-                  {product.components && product.components.length > 0 ? (
-                    <>
-                      {/* Apply filtering and sorting logic */}
-                      {(() => {
-                        let filteredComponents = [...product.components];
-                        
-                        // Apply filters
-                        if (componentFilter === 'recyclable') {
-                          filteredComponents = filteredComponents.filter(c => c.recyclable);
-                        } else if (componentFilter === 'non-recyclable') {
-                          filteredComponents = filteredComponents.filter(c => !c.recyclable);
-                        } else if (componentFilter === 'certified') {
-                          filteredComponents = filteredComponents.filter(c => c.certifications && c.certifications.length > 0);
-                        } else if (componentFilter === 'uncertified') {
-                          filteredComponents = filteredComponents.filter(c => !c.certifications || c.certifications.length === 0);
-                        }
-                        
-                        // Apply sorting
-                        if (componentSortBy === 'name') {
-                          filteredComponents.sort((a, b) => a.name.localeCompare(b.name));
-                        } else if (componentSortBy === 'name-desc') {
-                          filteredComponents.sort((a, b) => b.name.localeCompare(a.name));
-                        } else if (componentSortBy === 'weight') {
-                          filteredComponents.sort((a, b) => a.weight - b.weight);
-                        } else if (componentSortBy === 'weight-desc') {
-                          filteredComponents.sort((a, b) => b.weight - a.weight);
-                        }
-                        
-                        // If no components match the filter criteria
-                        if (filteredComponents.length === 0) {
-                          return (
-                            <div className="bg-white p-6 text-center border border-gray-300 rounded-lg">
-                              <svg className="mx-auto h-12 w-12 text-gray" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              <h3 className="mt-2 text-sm font-medium text-gray-dark">No matching components</h3>
-                              <p className="mt-1 text-sm text-gray">Try adjusting your filter to see more components.</p>
-                              <div className="mt-6">
-                                <Button variant="outline" onClick={() => setComponentFilter('all')}>
-                                  Clear Filter
-                                </Button>
-                              </div>
-                            </div>
-                          );
-                        }
-                        
-                        // Map components to the original array to get the correct index for edit/delete operations
-                        const componentIndexMap = filteredComponents.map(fc => {
-                          return product.components!.findIndex(pc => pc === fc);
+                  </div>
+                ) : (
+                  <div className="text-center py-8 bg-gray-50 rounded-lg">
+                    <p className="text-gray">No components added yet</p>
+                    <Button
+                      variant="outline"
+                      className="mt-4"
+                      onClick={() => {
+                        setEditingComponentIndex(null);
+                        setEditingComponent({
+                          name: "",
+                          description: "",
+                          material: "",
+                          weight: 0,
+                          recyclable: false,
                         });
-                        
-                        return (
-                          <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-                            <table className="min-w-full divide-y divide-gray-300">
-                              <thead className="bg-gray-50">
-                                <tr>
-                                  <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-dark sm:pl-6">Name</th>
-                                  <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-dark">Material</th>
-                                  <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-dark">Weight</th>
-                                  <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-dark">Recyclable</th>
-                                  <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                                    <span className="sr-only">Actions</span>
-                                  </th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-gray-200 bg-white">
-                                {filteredComponents.map((component, idx) => {
-                                  const originalIndex = componentIndexMap[idx];
-                                  return (
-                                    <tr key={originalIndex}>
-                                      <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-dark sm:pl-6">
-                                        {component.name}
-                                        {component.certifications && component.certifications.length > 0 && (
-                                          <div className="mt-1 flex flex-wrap gap-1">
-                                            {component.certifications.map((cert, i) => (
-                                              <span key={i} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                                {cert}
-                                              </span>
-                                            ))}
-                                          </div>
-                                        )}
-                                      </td>
-                                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray">{component.material}</td>
-                                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray">{component.weight}g</td>
-                                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray">
-                                        {component.recyclable ? (
-                                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                            Yes
-                                          </span>
-                                        ) : (
-                                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                            No
-                                          </span>
-                                        )}
-                                      </td>
-                                      <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                        <button 
-                                          onClick={() => handleEditComponent(originalIndex)} 
-                                          className="text-primary hover:text-primary-dark mr-4"
-                                        >
-                                          Edit
-                                        </button>
-                                        <button 
-                                          onClick={() => handleDeleteComponent(originalIndex)} 
-                                          className="text-red-600 hover:text-red-900"
-                                        >
-                                          Delete
-                                        </button>
-                                      </td>
-                                    </tr>
-                                  );
-                                })}
-                              </tbody>
-                            </table>
-                          </div>
-                        );
-                      })()}
-                    </>
-                  ) : (
-                    <div className="bg-white p-6 text-center border border-gray-300 border-dashed rounded-lg">
-                      <svg
-                        className="mx-auto h-12 w-12 text-gray"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        aria-hidden="true"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                        />
-                      </svg>
-                      <h3 className="mt-2 text-sm font-medium text-gray-dark">No components</h3>
-                      <p className="mt-1 text-sm text-gray">Get started by adding a component to this product.</p>
-                      <div className="mt-6">
-                        <Button onClick={handleAddComponent}>
-                          Add Component
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
+                      }}
+                    >
+                      Add First Component
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
 
-              {activeTab === 'analytics' && (
-                <div className="space-y-6">
-                  <h3 className="text-lg font-medium text-gray-dark">Product Analytics</h3>
-                  
-                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-                    <div className="bg-white overflow-hidden shadow rounded-lg">
-                      <div className="px-4 py-5 sm:p-6">
-                        <dl>
-                          <dt className="text-sm font-medium text-gray truncate">Total Scans</dt>
-                          <dd className="mt-1 text-3xl font-semibold text-gray-dark">243</dd>
-                        </dl>
-                      </div>
-                    </div>
-                    
-                    <div className="bg-white overflow-hidden shadow rounded-lg">
-                      <div className="px-4 py-5 sm:p-6">
-                        <dl>
-                          <dt className="text-sm font-medium text-gray truncate">Last 7 Days</dt>
-                          <dd className="mt-1 text-3xl font-semibold text-gray-dark">37</dd>
-                        </dl>
-                      </div>
-                    </div>
-                    
-                    <div className="bg-white overflow-hidden shadow rounded-lg">
-                      <div className="px-4 py-5 sm:p-6">
-                        <dl>
-                          <dt className="text-sm font-medium text-gray truncate">Unique Users</dt>
-                          <dd className="mt-1 text-3xl font-semibold text-gray-dark">126</dd>
-                        </dl>
-                      </div>
+            {activeTab === "analytics" && (
+              <div className="p-6 space-y-6">
+                <h3 className="text-lg font-medium text-gray-dark mb-4">
+                  Product Analytics
+                </h3>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  <div className="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-100">
+                    <div className="px-4 py-5 sm:p-6">
+                      <dl>
+                        <dt className="text-sm font-medium text-gray truncate">
+                          Total Scans
+                        </dt>
+                        <dd className="mt-1 text-3xl font-semibold text-gray-dark">
+                          243
+                        </dd>
+                      </dl>
                     </div>
                   </div>
 
-                  <div className="bg-white overflow-hidden shadow rounded-lg">
+                  <div className="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-100">
                     <div className="px-4 py-5 sm:p-6">
-                      <h4 className="text-base font-medium text-gray-dark mb-4">Scan Activity</h4>
-                      <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
-                        <p className="text-gray">Chart placeholder - scan activity over time</p>
-                      </div>
+                      <dl>
+                        <dt className="text-sm font-medium text-gray truncate">
+                          Last 7 Days
+                        </dt>
+                        <dd className="mt-1 text-3xl font-semibold text-gray-dark">
+                          37
+                        </dd>
+                      </dl>
                     </div>
                   </div>
 
-                  <div className="bg-white overflow-hidden shadow rounded-lg">
+                  <div className="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-100">
                     <div className="px-4 py-5 sm:p-6">
-                      <h4 className="text-base font-medium text-gray-dark mb-4">Geographic Distribution</h4>
-                      <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
-                        <p className="text-gray">Map placeholder - scan locations</p>
-                      </div>
+                      <dl>
+                        <dt className="text-sm font-medium text-gray truncate">
+                          Unique Users
+                        </dt>
+                        <dd className="mt-1 text-3xl font-semibold text-gray-dark">
+                          126
+                        </dd>
+                      </dl>
                     </div>
                   </div>
                 </div>
-              )}
-            </div>
+
+                <div className="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-100">
+                  <div className="px-4 py-5 sm:p-6">
+                    <h4 className="text-base font-medium text-gray-dark mb-4">
+                      Scan Activity
+                    </h4>
+                    <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
+                      <p className="text-gray">
+                        Chart placeholder - scan activity over time
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
+        </main>
+
+        {/* Bottom Navigation */}
+        <div className="fixed bottom-0 left-0 right-0 z-40">
+          <BottomNav userType="company" />
         </div>
-      </main>
-    </div>
+      </div>
+    </AuthProtection>
   );
 }
