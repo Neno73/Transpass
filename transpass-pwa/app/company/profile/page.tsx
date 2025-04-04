@@ -5,9 +5,15 @@ import { useRouter } from "next/navigation";
 import { Button } from "../../../components/ui/Button";
 import AuthProtection from "../../../components/AuthProtection";
 import { useAuth } from "../../../lib/AuthContext";
-import { updateCompanyProfile, updateUserProfile } from "../../../lib/auth";
+import {
+  updateCompanyProfile,
+  updateUserProfile,
+  signOut,
+} from "../../../lib/auth";
 import { BottomNav } from "../../../components/ui/Navigation";
 import { ArrowLeft, Check, X } from "lucide-react";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../../../lib/firebase";
 
 // Available certification options
 const CERTIFICATION_OPTIONS = [
@@ -29,10 +35,11 @@ const CERTIFICATION_OPTIONS = [
 ];
 
 export default function CompanyProfile() {
-  const { user, userData, refreshUserData } = useAuth();
+  const { user, userData } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const router = useRouter();
+  const [companyData, setCompanyData] = useState<any>(null);
   const [formData, setFormData] = useState({
     companyName: "",
     displayName: "",
@@ -45,22 +52,54 @@ export default function CompanyProfile() {
     image: "",
   });
 
-  // Initialize form with user data when available
+  // Fetch company data
   useEffect(() => {
-    if (userData) {
+    const fetchCompanyData = async () => {
+      if (!user) return;
+
+      try {
+        const companyRef = doc(db, "companies", user.uid);
+        const companySnap = await getDoc(companyRef);
+
+        if (companySnap.exists()) {
+          setCompanyData(companySnap.data());
+        }
+      } catch (error) {
+        console.error("Error fetching company data:", error);
+      }
+    };
+
+    fetchCompanyData();
+  }, [user]);
+
+  // Initialize form with company data when available
+  useEffect(() => {
+    if (userData && companyData) {
+      setFormData({
+        companyName: userData.companyName || companyData.name || "",
+        displayName: userData.displayName || "",
+        email: userData.email || "",
+        website: companyData.website || "",
+        description: companyData.description || "",
+        phone: companyData.phone || "",
+        address: companyData.address || "",
+        certifications: companyData.certifications || [],
+        image: companyData.image || "",
+      });
+    } else if (userData) {
       setFormData({
         companyName: userData.companyName || "",
         displayName: userData.displayName || "",
         email: userData.email || "",
-        website: userData.website || "",
-        description: userData.description || "",
-        phone: userData.phone || "",
-        address: userData.address || "",
-        certifications: userData.certifications || [],
-        image: userData.image || "",
+        website: "",
+        description: "",
+        phone: "",
+        address: "",
+        certifications: [],
+        image: "",
       });
     }
-  }, [userData]);
+  }, [userData, companyData]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -112,8 +151,6 @@ export default function CompanyProfile() {
         certifications: formData.certifications || [],
       });
 
-      // Refresh user data to reflect changes
-      await refreshUserData();
       setFormSubmitted(true);
 
       // Reset form submission status after 3 seconds
@@ -122,6 +159,18 @@ export default function CompanyProfile() {
       }, 3000);
     } catch (error) {
       console.error("Error updating profile:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    setIsLoading(true);
+    try {
+      await signOut();
+      router.push("/auth/login");
+    } catch (error) {
+      console.error("Error signing out:", error);
     } finally {
       setIsLoading(false);
     }
@@ -168,15 +217,15 @@ export default function CompanyProfile() {
             <div className="p-6 flex items-center border-b border-gray-100">
               <div className="w-16 h-16 bg-primary-lightest rounded-full flex items-center justify-center mr-4">
                 <span className="text-primary text-2xl font-bold">
-                  {userData?.companyName?.charAt(0) || "C"}
+                  {companyData?.name?.charAt(0) || "C"}
                 </span>
               </div>
               <div>
                 <h2 className="text-xl font-bold text-gray-dark">
-                  {userData?.companyName || "Your Company"}
+                  {companyData?.name || "Your Company"}
                 </h2>
                 <p className="text-gray text-sm mt-1">
-                  {userData?.email || "company@example.com"}
+                  {companyData?.email || "company@example.com"}
                 </p>
               </div>
             </div>
@@ -360,8 +409,17 @@ export default function CompanyProfile() {
                 </div>
               </div>
 
-              <div className="pt-4">
-                <Button type="submit" className="w-full" disabled={isLoading}>
+              <div className="pt-4 flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1 text-red-600 border-red-200 hover:bg-red-50"
+                  onClick={handleSignOut}
+                  disabled={isLoading}
+                >
+                  Sign Out
+                </Button>
+                <Button type="submit" className="flex-1" disabled={isLoading}>
                   {isLoading ? "Saving..." : "Save Changes"}
                 </Button>
               </div>

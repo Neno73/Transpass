@@ -841,43 +841,6 @@ export default function CreateProductPage() {
                       </div>
 
                       <div className="flex flex-col sm:flex-row gap-2">
-                        <input
-                          type="text"
-                          placeholder="Color name"
-                          className="flex-grow rounded border border-gray-300 p-2 text-sm"
-                          value={
-                            productData.selectedColor
-                              ? productData.colors.find(
-                                  (c) => c.hex === productData.selectedColor
-                                )?.name || ""
-                              : ""
-                          }
-                          onChange={(e) => {
-                            if (productData.selectedColor) {
-                              // If this color is already in the array, update its name
-                              const colorExists = productData.colors.find(
-                                (c) => c.hex === productData.selectedColor
-                              );
-                              if (colorExists) {
-                                const updated = productData.colors.map((c) =>
-                                  c.hex === productData.selectedColor
-                                    ? { ...c, name: e.target.value }
-                                    : c
-                                );
-                                setProductData({
-                                  ...productData,
-                                  colors: updated,
-                                });
-                              } else {
-                                // Otherwise, prepare to add it when the Add button is clicked
-                                setProductData({
-                                  ...productData,
-                                  tempColorName: e.target.value,
-                                });
-                              }
-                            }
-                          }}
-                        />
                         <div className="flex gap-2">
                           <Button
                             type="button"
@@ -905,6 +868,11 @@ export default function CreateProductPage() {
                                       "#FFFFFF": "White",
                                       "#666666": "Dark Gray",
                                       "#CCCCCC": "Light Gray",
+                                      "#CCFF99": "Light Green",
+                                      "#99CCFF": "Light Blue",
+                                      "#CC99FF": "Lavander",
+                                      "#999999": "Gray",
+                                      "#FFDDDD": "Powder Pink",
                                     }[productData.selectedColor] ||
                                     "Custom";
 

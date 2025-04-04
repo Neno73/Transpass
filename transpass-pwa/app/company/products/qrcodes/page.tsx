@@ -494,7 +494,12 @@ export default function ProductQRCodesPage() {
                           <Download size={20} />
                         </button>
                         <button
-                          onClick={() => handleGenerateTemplate(product)}
+                          onClick={() =>
+                            handleGenerateQR(
+                              product.id || "",
+                              product.name || "product"
+                            )
+                          }
                           disabled={generating}
                           className="p-2 text-green-600 hover:bg-green-50 rounded-full transition-colors"
                           title="Print Template"
