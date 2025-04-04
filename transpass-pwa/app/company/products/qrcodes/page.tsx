@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "../../../../components/ui/Button";
@@ -23,7 +23,8 @@ import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import QRCode from "qrcode";
 
-export default function ProductQRCodesPage() {
+// Create a separate component that uses useSearchParams
+function QRCodesContent() {
   const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -417,6 +418,235 @@ export default function ProductQRCodesPage() {
   }, [printProductId, products]);
 
   return (
+    <>
+      {/* Success message */}
+      {generateSuccess && (
+        <div className="mb-4 bg-green-50 text-green-800 p-4 rounded-xl flex items-center">
+          <Check size={20} className="mr-2 flex-shrink-0" />
+          <span>QR code generated successfully!</span>
+        </div>
+      )}
+
+      {/* Error message */}
+      {error && (
+        <div className="mb-4 bg-red-50 text-red-800 p-4 rounded-xl flex items-center">
+          <X size={20} className="mr-2 flex-shrink-0" />
+          <span>{error}</span>
+          <button
+            onClick={() => setError(null)}
+            className="ml-auto text-red-800"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
+      {/* Search and bulk actions */}
+      <div className="mb-4 space-y-3">
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search size={18} className="text-gray" />
+          </div>
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+          />
+          {searchQuery && (
+            <button
+              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              onClick={() => setSearchQuery("")}
+            >
+              <span className="text-gray hover:text-gray-dark">✕</span>
+            </button>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <input
+              id="select-all-mobile"
+              name="select-all-mobile"
+              type="checkbox"
+              className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+              checked={selectAll}
+              onChange={() => setSelectAll(!selectAll)}
+            />
+            <label
+              htmlFor="select-all-mobile"
+              className="ml-2 text-sm text-gray-700"
+            >
+              Select All ({filteredProducts.length})
+            </label>
+          </div>
+
+          <div className="flex space-x-2">
+            {selectedProducts.length > 0 && (
+              <Button
+                onClick={handleGenerateBulkQR}
+                disabled={generating}
+                className="flex items-center"
+                size="sm"
+              >
+                <Archive size={16} className="mr-1" />
+                <span>Bulk Download</span>
+                <span className="sm:hidden">{selectedProducts.length}</span>
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Products list */}
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="w-16 h-16 border-4 border-primary-light border-t-primary rounded-full animate-spin"></div>
+          <p className="mt-4 text-gray">Loading products...</p>
+        </div>
+      ) : filteredProducts.length === 0 ? (
+        <div className="bg-white rounded-xl shadow-sm p-8 text-center">
+          <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
+            <Archive size={24} className="text-gray" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No products found
+          </h3>
+          <p className="text-gray mb-6">
+            {searchQuery
+              ? "No products match your search criteria."
+              : "You haven't created any products yet."}
+          </p>
+          {searchQuery ? (
+            <Button onClick={() => setSearchQuery("")}>Clear Search</Button>
+          ) : (
+            <Link href="/company/products/new">
+              <Button>Create Product</Button>
+            </Link>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filteredProducts.map((product) => (
+            <div
+              key={product.id}
+              className="bg-white rounded-xl shadow-sm overflow-hidden"
+            >
+              <div className="p-4">
+                <div className="flex items-center">
+                  <input
+                    id={`product-${product.id}`}
+                    name={`product-${product.id}`}
+                    type="checkbox"
+                    className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                    checked={product.checked || false}
+                    onChange={() => handleProductSelect(product.id || "")}
+                  />
+                  <div className="ml-3 flex-grow">
+                    <h3 className="text-sm font-medium text-gray-900">
+                      {product.name}
+                    </h3>
+                    <p className="text-xs text-gray-500">
+                      {product.model || "No model"} • ID:{" "}
+                      {product.id?.slice(0, 8)}...
+                    </p>
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() =>
+                        handleGenerateQR(
+                          product.id || "",
+                          product.name || "product"
+                        )
+                      }
+                      disabled={generating}
+                      className="p-2 text-primary hover:bg-primary-lightest rounded-full transition-colors"
+                      title="Download QR Code"
+                    >
+                      <Download size={20} />
+                    </button>
+                    <button
+                      onClick={() =>
+                        handlePrintRequest(product.id || "", product)
+                      }
+                      disabled={generating}
+                      className="p-2 text-green-600 hover:bg-green-50 rounded-full transition-colors"
+                      title="Print Template"
+                    >
+                      <Printer size={20} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* QR Printing Guide - Always visible */}
+      <div className="bg-white rounded-xl shadow-sm overflow-hidden mt-6">
+        <div className="p-4">
+          <h3 className="text-lg font-medium text-gray-dark mb-4">
+            QR Code Printing Guide
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="flex items-center mb-2">
+                <Download size={18} className="text-primary mr-2" />
+                <h4 className="font-medium text-primary">
+                  Individual QR Codes
+                </h4>
+              </div>
+              <p className="text-sm text-gray">
+                Download individual QR codes for each product.
+              </p>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="flex items-center mb-2">
+                <Printer size={18} className="text-green-600 mr-2" />
+                <h4 className="font-medium text-green-600">
+                  Printable Templates
+                </h4>
+              </div>
+              <p className="text-sm text-gray">
+                Generate printable templates with product details.
+              </p>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="flex items-center mb-2">
+                <Archive size={18} className="text-blue-600 mr-2" />
+                <h4 className="font-medium text-blue-600">Bulk Generation</h4>
+              </div>
+              <p className="text-sm text-gray">
+                Download multiple QR codes in a ZIP file.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 bg-yellow-50 p-4 rounded-lg text-sm text-yellow-800">
+            <h4 className="font-medium mb-2">Printing Tips</h4>
+            <ul className="list-disc list-inside space-y-1">
+              <li>Print at 300 DPI or higher for best results</li>
+              <li>
+                Minimum recommended size: 2.5 cm × 2.5 cm (1&quot; × 1&quot;)
+              </li>
+              <li>Ensure good contrast between QR code and background</li>
+              <li>Test scan your printed QR codes before distributing</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// Main component with Suspense boundary
+export default function ProductQRCodesPage() {
+  return (
     <AuthProtection companyOnly>
       <div className="min-h-screen bg-primary-lightest pb-20 mx-auto max-w-2xl relative overflow-hidden">
         {/* Header */}
@@ -440,230 +670,9 @@ export default function ProductQRCodesPage() {
         </header>
 
         <main className="p-4 max-w-4xl mx-auto w-full relative z-10">
-          {/* Success message */}
-          {generateSuccess && (
-            <div className="mb-4 bg-green-50 text-green-800 p-4 rounded-xl flex items-center">
-              <Check size={20} className="mr-2 flex-shrink-0" />
-              <span>QR code generated successfully!</span>
-            </div>
-          )}
-
-          {/* Error message */}
-          {error && (
-            <div className="mb-4 bg-red-50 text-red-800 p-4 rounded-xl flex items-center">
-              <X size={20} className="mr-2 flex-shrink-0" />
-              <span>{error}</span>
-              <button
-                onClick={() => setError(null)}
-                className="ml-auto text-red-800"
-              >
-                <X size={16} />
-              </button>
-            </div>
-          )}
-
-          {/* Search and bulk actions */}
-          <div className="mb-4 space-y-3">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search size={18} className="text-gray" />
-              </div>
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-              />
-              {searchQuery && (
-                <button
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setSearchQuery("")}
-                >
-                  <span className="text-gray hover:text-gray-dark">✕</span>
-                </button>
-              )}
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="select-all-mobile"
-                  name="select-all-mobile"
-                  type="checkbox"
-                  className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-                  checked={selectAll}
-                  onChange={() => setSelectAll(!selectAll)}
-                />
-                <label
-                  htmlFor="select-all-mobile"
-                  className="ml-2 text-sm text-gray-700"
-                >
-                  Select All ({filteredProducts.length})
-                </label>
-              </div>
-
-              <div className="flex space-x-2">
-                {selectedProducts.length > 0 && (
-                  <Button
-                    onClick={handleGenerateBulkQR}
-                    disabled={generating}
-                    className="flex items-center"
-                    size="sm"
-                  >
-                    <Archive size={16} className="mr-1" />
-                    <span>Bulk Download</span>
-                    <span className="sm:hidden">{selectedProducts.length}</span>
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Products list */}
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <div className="w-16 h-16 border-4 border-primary-light border-t-primary rounded-full animate-spin"></div>
-              <p className="mt-4 text-gray">Loading products...</p>
-            </div>
-          ) : filteredProducts.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-sm p-8 text-center">
-              <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <Archive size={24} className="text-gray" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                No products found
-              </h3>
-              <p className="text-gray mb-6">
-                {searchQuery
-                  ? "No products match your search criteria."
-                  : "You haven't created any products yet."}
-              </p>
-              {searchQuery ? (
-                <Button onClick={() => setSearchQuery("")}>Clear Search</Button>
-              ) : (
-                <Link href="/company/products/new">
-                  <Button>Create Product</Button>
-                </Link>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {filteredProducts.map((product) => (
-                <div
-                  key={product.id}
-                  className="bg-white rounded-xl shadow-sm overflow-hidden"
-                >
-                  <div className="p-4">
-                    <div className="flex items-center">
-                      <input
-                        id={`product-${product.id}`}
-                        name={`product-${product.id}`}
-                        type="checkbox"
-                        className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-                        checked={product.checked || false}
-                        onChange={() => handleProductSelect(product.id || "")}
-                      />
-                      <div className="ml-3 flex-grow">
-                        <h3 className="text-sm font-medium text-gray-900">
-                          {product.name}
-                        </h3>
-                        <p className="text-xs text-gray-500">
-                          {product.model || "No model"} • ID:{" "}
-                          {product.id?.slice(0, 8)}...
-                        </p>
-                      </div>
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() =>
-                            handleGenerateQR(
-                              product.id || "",
-                              product.name || "product"
-                            )
-                          }
-                          disabled={generating}
-                          className="p-2 text-primary hover:bg-primary-lightest rounded-full transition-colors"
-                          title="Download QR Code"
-                        >
-                          <Download size={20} />
-                        </button>
-                        <button
-                          onClick={() =>
-                            handlePrintRequest(product.id || "", product)
-                          }
-                          disabled={generating}
-                          className="p-2 text-green-600 hover:bg-green-50 rounded-full transition-colors"
-                          title="Print Template"
-                        >
-                          <Printer size={20} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* QR Printing Guide - Always visible */}
-          <div className="bg-white rounded-xl shadow-sm overflow-hidden mt-6">
-            <div className="p-4">
-              <h3 className="text-lg font-medium text-gray-dark mb-4">
-                QR Code Printing Guide
-              </h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <div className="flex items-center mb-2">
-                    <Download size={18} className="text-primary mr-2" />
-                    <h4 className="font-medium text-primary">
-                      Individual QR Codes
-                    </h4>
-                  </div>
-                  <p className="text-sm text-gray">
-                    Download individual QR codes for each product.
-                  </p>
-                </div>
-
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <div className="flex items-center mb-2">
-                    <Printer size={18} className="text-green-600 mr-2" />
-                    <h4 className="font-medium text-green-600">
-                      Printable Templates
-                    </h4>
-                  </div>
-                  <p className="text-sm text-gray">
-                    Generate printable templates with product details.
-                  </p>
-                </div>
-
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <div className="flex items-center mb-2">
-                    <Archive size={18} className="text-blue-600 mr-2" />
-                    <h4 className="font-medium text-blue-600">
-                      Bulk Generation
-                    </h4>
-                  </div>
-                  <p className="text-sm text-gray">
-                    Download multiple QR codes in a ZIP file.
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-4 bg-yellow-50 p-4 rounded-lg text-sm text-yellow-800">
-                <h4 className="font-medium mb-2">Printing Tips</h4>
-                <ul className="list-disc list-inside space-y-1">
-                  <li>Print at 300 DPI or higher for best results</li>
-                  <li>
-                    Minimum recommended size: 2.5 cm × 2.5 cm (1&quot; ×
-                    1&quot;)
-                  </li>
-                  <li>Ensure good contrast between QR code and background</li>
-                  <li>Test scan your printed QR codes before distributing</li>
-                </ul>
-              </div>
-            </div>
-          </div>
+          <Suspense fallback={<div>Loading...</div>}>
+            <QRCodesContent />
+          </Suspense>
         </main>
 
         {/* Bottom Navigation */}
