@@ -147,7 +147,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                 }`}
                 onClick={() => setActiveTab("details")}
               >
-                Product Details
+                Product
               </button>
               <button
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
@@ -167,7 +167,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                 }`}
                 onClick={() => setActiveTab("care")}
               >
-                Care Instructions
+                Care
               </button>
             </div>
           </div>

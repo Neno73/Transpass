@@ -101,9 +101,9 @@ export default function UserDashboard() {
           />
 
           {/* Mobile header */}
-          <div className=" p-4 mt-4">
+          <div className=" p-4 mt-4 relative">
             <Settings
-              className="cursor-pointer relative ml-auto"
+              className="cursor-pointer  ml-auto"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             />
 
@@ -209,13 +209,13 @@ export default function UserDashboard() {
                       <h3 className="text-sm font-medium text-white opacity-90">
                         Total Scans
                       </h3>
-                      <p className="mt-1 text-3xl font-semibold text-white">
+                      <div className="mt-1 text-3xl font-semibold text-white">
                         {historyLoading ? (
                           <div className="h-8 w-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                         ) : (
                           scanHistory.length
                         )}
-                      </p>
+                      </div>
                     </div>
                   </div>
                   <div className="px-6 py-3 bg-primary-dark">
@@ -249,13 +249,13 @@ export default function UserDashboard() {
                       <h3 className="text-sm font-medium text-white opacity-90">
                         Recent Activity
                       </h3>
-                      <p className="mt-1 text-3xl font-semibold text-white">
+                      <div className="mt-1 text-3xl font-semibold text-white">
                         {historyLoading ? (
                           <div className="h-8 w-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                         ) : (
                           recentScans.length
                         )}
-                      </p>
+                      </div>
                       <div className="mt-1 flex items-center text-xs text-white opacity-90">
                         <svg
                           className="mr-1 h-4 w-4"

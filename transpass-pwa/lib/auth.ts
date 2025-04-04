@@ -15,6 +15,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
+import { getFirestore } from "firebase/firestore";
 
 // Register a new user with email and password
 export const registerUser = async (
@@ -158,29 +159,37 @@ export const updateUserProfile = async (
   }
 };
 
-export const updateCompanyProfile = async (
-  user: User,
-  data: {
-    companyName?: string;
-    displayName?: string;
-    website?: string;
-    description?: string;
-    phone?: string;
-    address?: string;
-    certifications?: string[];
-    image?: string;
-  }
-) => {
+export async function updateCompanyProfile(user: User, profileData: any) {
   try {
     const companyRef = doc(db, "companies", user.uid);
-    await updateDoc(companyRef, {
-      ...data,
+
+    // First check if the document exists
+    const docSnap = await getDoc(companyRef);
+
+    // Ensure certifications is an array
+    const dataToSave = {
+      ...profileData,
+      certifications: Array.isArray(profileData.certifications)
+        ? profileData.certifications
+        : [],
       updatedAt: serverTimestamp(),
-    });
+    };
+
+    if (!docSnap.exists()) {
+      // If document doesn't exist, create it
+      await setDoc(companyRef, {
+        ...dataToSave,
+        id: user.uid,
+        createdAt: serverTimestamp(),
+      });
+    } else {
+      // If document exists, update it
+      await updateDoc(companyRef, dataToSave);
+    }
 
     return true;
   } catch (error) {
     console.error("Error updating company profile:", error);
     throw error;
   }
-};
+}
