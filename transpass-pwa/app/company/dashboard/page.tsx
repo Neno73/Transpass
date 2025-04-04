@@ -123,16 +123,24 @@ export default function CompanyDashboard() {
       <div className="min-h-screen bg-primary-lightest pb-20 p-2">
         <div className="mx-auto max-w-[600px]">
           <Image
+            src="/full-logo.svg"
+            alt="logo background"
+            width={1000}
+            height={1000}
+            className="absolute top-0 left-20 z-0 hidden md:block"
+          />
+          <Image
             src="/logo-bg.png"
             alt="logo background"
             width={1000}
             height={1000}
-            className="absolute top-0 left-0 z-0"
+            className="absolute top-0 left-0 z-0 block md:hidden"
           />
+
           {/* Mobile header */}
-          <div className="p-4 mt-4">
+          <div className="p-4 mt-4 relative">
             <Settings
-              className="cursor-pointer relative ml-auto"
+              className="cursor-pointer  ml-auto"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             />
 
