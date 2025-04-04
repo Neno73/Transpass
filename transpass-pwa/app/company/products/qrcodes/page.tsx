@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "../../../../components/ui/Button";
 import AuthProtection from "../../../../components/AuthProtection";
@@ -26,6 +26,8 @@ import QRCode from "qrcode";
 export default function ProductQRCodesPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const printProductId = searchParams.get("print");
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -322,6 +324,98 @@ export default function ProductQRCodesPage() {
     }
   };
 
+  // Move handlePrintRequest outside the useEffect
+  const handlePrintRequest = async (productId: string, product: Product) => {
+    if (!productId) return;
+
+    try {
+      setGenerating(true);
+      const url = `${window.location.origin}/p/${productId}`;
+
+      // Generate QR code
+      const qrDataUrl = await QRCode.toDataURL(url, {
+        width: 512,
+        margin: 2,
+        color: {
+          dark: "#3D4EAD",
+          light: "#FFFFFF",
+        },
+      });
+
+      // Create a printable template
+      const printWindow = window.open("", "_blank");
+      if (!printWindow) {
+        setError("Pop-up blocked. Please allow pop-ups and try again.");
+        return;
+      }
+
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>QR Code - ${product.name}</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+              .container { max-width: 800px; margin: 0 auto; text-align: center; }
+              .qr-code { margin: 20px 0; }
+              .product-name { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
+              .product-details { margin-bottom: 20px; }
+              .footer { margin-top: 30px; font-size: 12px; color: #666; }
+              @media print {
+                .no-print { display: none; }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="no-print">
+                <button onclick="window.print();" style="padding: 10px 20px; background: #3D4EAD; color: white; border: none; border-radius: 4px; cursor: pointer; margin-bottom: 20px;">
+                  Print QR Code
+                </button>
+              </div>
+              
+              <div class="product-name">${product.name}</div>
+              <div class="product-details">
+                ${product.model ? `Model: ${product.model}` : ""}
+                ${product.SKU ? `<br>SKU: ${product.SKU}` : ""}
+              </div>
+              
+              <div class="qr-code">
+                <img src="${qrDataUrl}" alt="Product QR Code" style="max-width: 300px;">
+              </div>
+              
+              <div class="footer">
+                Scan this QR code to view detailed product information
+                <br>
+                <small>${url}</small>
+              </div>
+            </div>
+          </body>
+        </html>
+      `);
+
+      printWindow.document.close();
+
+      setGenerateSuccess(true);
+      setTimeout(() => setGenerateSuccess(false), 3000);
+    } catch (err) {
+      console.error("Error generating printable QR code:", err);
+      setError("Failed to generate printable QR code. Please try again.");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  // Then modify the useEffect to use this function
+  useEffect(() => {
+    // Only run this when products are loaded and printProductId is available
+    if (products.length > 0 && printProductId) {
+      const productToPrint = products.find((p) => p.id === printProductId);
+      if (productToPrint) {
+        handlePrintRequest(printProductId, productToPrint);
+      }
+    }
+  }, [printProductId, products]);
+
   return (
     <AuthProtection companyOnly>
       <div className="min-h-screen bg-primary-lightest pb-20 mx-auto max-w-2xl relative overflow-hidden">
@@ -495,10 +589,7 @@ export default function ProductQRCodesPage() {
                         </button>
                         <button
                           onClick={() =>
-                            handleGenerateQR(
-                              product.id || "",
-                              product.name || "product"
-                            )
+                            handlePrintRequest(product.id || "", product)
                           }
                           disabled={generating}
                           className="p-2 text-green-600 hover:bg-green-50 rounded-full transition-colors"
