@@ -456,7 +456,7 @@ export default function CompanyDashboard() {
                             </p>
                           </div>
                           <div className="ml-4">
-                            <svg
+                            {/* <svg
                               className="h-5 w-5 text-gray"
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 20 20"
@@ -467,7 +467,7 @@ export default function CompanyDashboard() {
                                 d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
                                 clipRule="evenodd"
                               />
-                            </svg>
+                            </svg> */}
                           </div>
                         </div>
                       </li>

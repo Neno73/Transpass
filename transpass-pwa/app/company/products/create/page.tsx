@@ -21,7 +21,9 @@ export default function CreateProductPage() {
   const [currentComponent, setCurrentComponent] = useState({
     name: "",
     description: "",
+    websiteLink: "",
     material: "",
+    composition:"",
     weight: 0,
     recyclable: false,
     manufacturer: "",
@@ -36,6 +38,7 @@ export default function CreateProductPage() {
     name: "",
     description: "",
     collection: "",
+    websiteLink: "",
     SKU: "",
     colors: [] as { name: string; hex: string }[],
     selectedColor: "",
@@ -55,11 +58,14 @@ export default function CreateProductPage() {
       drying: "",
       ironing: "",
       bleaching: "",
+      professionalCare: "",
     },
     components: [] as {
       name: string;
       description: string;
       material: string;
+      composition?: string;
+      websiteLink?: string;
       weight: number;
       recyclable: boolean;
       manufacturer?: string;
@@ -229,6 +235,7 @@ export default function CreateProductPage() {
           drying: "Tumble dry low",
           ironing: "Iron on medium heat",
           bleaching: "Do not bleach",
+          professionalCare: "No professional wet-cleaning allowed",
         },
       });
 
@@ -291,6 +298,8 @@ export default function CreateProductPage() {
       name: "",
       description: "",
       material: "",
+      composition: "",
+      websiteLink: "",
       weight: 0,
       recyclable: false,
       manufacturer: "",
@@ -422,6 +431,7 @@ export default function CreateProductPage() {
                 name: "Main Component",
                 description: "Primary material of the product",
                 material: "Mixed",
+                composition: "Cotton, Polyester",
                 weight: 100,
                 recyclable: true,
                 manufacturer: productData.producedBy,
@@ -502,6 +512,7 @@ export default function CreateProductPage() {
     <AuthProtection companyOnly>
       <div className="min-h-screen bg-white pb-20 p-4 max-w-xl mx-auto">
         <Image
+          onClick={() => router.push("/")}
           src="/background-grey-logo.svg"
           alt="Background pattern"
           width={1000}
@@ -544,6 +555,11 @@ export default function CreateProductPage() {
               <div
                 className={`h-2 rounded-full w-full max-w-24 ${
                   step >= 3 ? "bg-primary" : "bg-primary-light"
+                }`}
+              ></div>
+               <div
+                className={`h-2 rounded-full w-full max-w-24 ${
+                  step >= 4 ? "bg-primary" : "bg-primary-light"
                 }`}
               ></div>
             </div>
@@ -1175,16 +1191,36 @@ export default function CreateProductPage() {
                       className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
                     >
                       <option value="">Select washing instruction</option>
-                      <option value="Machine wash cold">
-                        Machine wash cold
-                      </option>
-                      <option value="Machine wash warm">
-                        Machine wash warm
-                      </option>
-                      <option value="Machine wash hot">Machine wash hot</option>
-                      <option value="Hand wash only">Hand wash only</option>
-                      <option value="Dry clean only">Dry clean only</option>
                       <option value="Do not wash">Do not wash</option>
+                      <option value="Hand wash ambient temperature">
+                        Hand wash ambient temperature
+                      </option>
+                      <option
+                        value="Hand wash (at 40°C)
+"
+                      >
+                        Hand wash (at 40°C)
+                      </option>
+                      <option value="30°C very mild fine wash">
+                        30°C very mild fine wash
+                      </option>
+                      <option value="30°C mild fine wash">
+                        30°C mild fine wash
+                      </option>
+                      <option value="30°C fine wash">30°C fine wash</option>
+
+                      <option value="40°C very mild wash">
+                        40°C very mild wash
+                      </option>
+                      <option value="40°C mild wash">40°C mild wash</option>
+                      <option value="40°C coloured wash">
+                        40°C coloured wash
+                      </option>
+                      <option value="60°C coloured wash">
+                        60°C coloured wash
+                      </option>
+                      <option value="70°C boil wash">70°C boil wash</option>
+                      <option value="95°C boil wash">95°C boil wash</option>
                     </select>
                   </div>
 
@@ -1203,13 +1239,31 @@ export default function CreateProductPage() {
                       className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
                     >
                       <option value="">Select drying instruction</option>
-                      <option value="Tumble dry low">Tumble dry low</option>
-                      <option value="Tumble dry medium">
-                        Tumble dry medium
+                      <option value="Drip flat drying in the shade">
+                        Drip flat drying in the shade
                       </option>
-                      <option value="Tumble dry high">Tumble dry high</option>
+                      <option value="Drip line drying in the shade">
+                        Drip line drying in the shade
+                      </option>
+                      <option value="Flat drying in the shade">
+                        Flat drying in the shade
+                      </option>
                       <option value="Line dry">Line dry</option>
-                      <option value="Lay flat to dry">Lay flat to dry</option>
+                      <option value="Drip flat drying">Drip flat drying</option>
+                      <option value="Line drying in the shade">
+                        Line drying in the shade
+                      </option>
+                      <option value="Flat drying">Flat drying</option>{" "}
+                      <option value="Line drying">Line drying</option>{" "}
+                      <option value="Drip line drying">Drip line drying</option>{" "}
+                      <option value="Natural drying">Natural drying</option>{" "}
+                      <option value="Normal drying process">
+                        Normal drying process
+                      </option>
+                      <option value="Mild drying processes">
+                        Mild drying processes
+                      </option>
+                      <option value="Tumble drying">Tumble drying</option>
                       <option value="Do not tumble dry">
                         Do not tumble dry
                       </option>
@@ -1231,11 +1285,17 @@ export default function CreateProductPage() {
                       className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
                     >
                       <option value="">Select ironing instruction</option>
-                      <option value="Iron on low">Iron on low</option>
-                      <option value="Iron on medium">Iron on medium</option>
-                      <option value="Iron on high">Iron on high</option>
                       <option value="Do not iron">Do not iron</option>
-                      <option value="Steam iron only">Steam iron only</option>
+                      <option value="Iron at low temperature without steam">
+                        Iron at low temperature without steam
+                      </option>
+                      <option value="Iron at low temperature">
+                        Iron at low temperature
+                      </option>
+                      <option value="Iron at moderate temperature">
+                        Iron at moderate temperature
+                      </option>
+                      <option value="Hot Iron">Hot Iron</option>
                     </select>
                   </div>
 
@@ -1254,13 +1314,54 @@ export default function CreateProductPage() {
                       className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
                     >
                       <option value="">Select bleaching instruction</option>
-                      <option value="Bleach when needed">
-                        Bleach when needed
+                      <option value="Only oxygen bleach allowed">
+                        Only oxygen bleach allowed
                       </option>
-                      <option value="Non-chlorine bleach only">
-                        Non-chlorine bleach only
+                      <option value="Any bleach allowed">
+                        Any bleach allowed
                       </option>
                       <option value="Do not bleach">Do not bleach</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="care.professionalCare"
+                      className="block text-sm font-medium text-gray-dark"
+                    >
+                      Professional Care
+                    </label>
+                    <select
+                      name="care.professionalCare"
+                      id="care.professionalCare"
+                      value={productData.care.professionalCare}
+                      onChange={handleChange}
+                      className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
+                    >
+                      <option value="">
+                        Select professional care instruction
+                      </option>
+                      <option value="Do not wet-clean">Do not wet-clean</option>
+                      <option value="Very mild professional wet-cleaning">
+                        Very mild professional wet-cleaning
+                      </option>
+                      <option value="Mild professional wet-cleaning">
+                        Mild professional wet-cleaning
+                      </option>
+                      <option value="Professional wet-cleaning">
+                        Professional wet-cleaning
+                      </option>
+                      <option value="Wet-cleaning">Wet-cleaning</option>
+                      <option value="Do not dry-clean">Do not dry-clean</option>
+
+                      <option value="Professional dry-cleaning in: hydrocarbons (heavy benzines)">
+                        Professional dry-cleaning in: hydrocarbons (heavy
+                        benzines)
+                      </option>
+                      <option value="Professional dry-cleaning in: perchloroethylene, hydrocarbons (heavy benzines)">
+                        Professional dry-cleaning in: perchloroethylene,
+                        hydrocarbons (heavy benzines)
+                      </option>
+                      <option value="Dry-cleaning">Dry-cleaning</option>
                     </select>
                   </div>
                 </div>
@@ -1326,6 +1427,12 @@ export default function CreateProductPage() {
                               </div>
                               <div>
                                 <span className="font-medium text-gray-dark">
+                                  Composition:
+                                </span>{" "}
+                                {component.composition}
+                              </div>
+                              <div>
+                                <span className="font-medium text-gray-dark">
                                   Weight:
                                 </span>{" "}
                                 {component.weight}g
@@ -1346,24 +1453,7 @@ export default function CreateProductPage() {
                               )}
                             </div>
 
-                            {component.certifications &&
-                              component.certifications.length > 0 && (
-                                <div className="mt-2">
-                                  <span className="text-sm font-medium text-gray-dark">
-                                    Certifications:
-                                  </span>
-                                  <div className="flex flex-wrap gap-1 mt-1">
-                                    {component.certifications.map((cert, i) => (
-                                      <span
-                                        key={i}
-                                        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary-lightest text-primary"
-                                      >
-                                        {cert}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
+                           
                           </div>
 
                           <button
@@ -1397,7 +1487,7 @@ export default function CreateProductPage() {
               {isAddingComponent ? (
                 <div className="bg-white rounded-lg">
                   <h3 className="text-sm font-medium text-gray-dark mb-4">
-                    Add New Component
+                    Add New Product Component
                   </h3>
 
                   <div className="space-y-4">
@@ -1406,7 +1496,7 @@ export default function CreateProductPage() {
                         htmlFor="componentName"
                         className="block text-sm font-medium text-gray-dark"
                       >
-                        Component Name <span className="text-red-500">*</span>
+                       Product Component <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -1445,7 +1535,7 @@ export default function CreateProductPage() {
                           htmlFor="componentMaterial"
                           className="block text-sm font-medium text-gray-dark"
                         >
-                          Material <span className="text-red-500">*</span>
+                          Component type <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
@@ -1479,12 +1569,32 @@ export default function CreateProductPage() {
                       </div>
                     </div>
 
+
+
+                    <div className="grid grid-cols-2 gap-4">
+                       <div>
+                        <label
+                          htmlFor="componentComposition"
+                          className="block text-sm font-medium text-gray-dark"
+                        >
+                          Composition 
+                        </label>
+                        <input
+                          type="text"
+                          name="composition"
+                          id="componentComposition"
+                          value={currentComponent.composition}
+                          onChange={handleComponentChange}
+                          className="mt-1 block w-full border border-gray-300 rounded-lg  py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
+                          placeholder="e.g., 100% Cotton, 50% Polyester, 50% Cotton"
+                        />
+                      </div>
                     <div>
                       <label
                         htmlFor="componentLocation"
                         className="block text-sm font-medium text-gray-dark"
                       >
-                        Location
+                        Supplier
                       </label>
                       <input
                         type="text"
@@ -1495,6 +1605,7 @@ export default function CreateProductPage() {
                         className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
                         placeholder="e.g., Sleeve, Front, Inside"
                       />
+                    </div>
                     </div>
 
                     <div className="flex items-center">
@@ -1514,21 +1625,89 @@ export default function CreateProductPage() {
                       </label>
                     </div>
 
+                  
+
+                    <div className="flex justify-end space-x-3 pt-4">
+                      <Button
+                        variant="outline"
+                        type="button"
+                        onClick={() => setIsAddingComponent(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button type="button" onClick={handleAddComponent}>
+                        Add Component
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <Button
+                  variant="outline"
+                  onClick={() => setIsAddingComponent(true)}
+                  className="w-full justify-center py-3"
+                >
+                  <svg
+                    className="mr-2 h-5 w-5"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 3a1 1 0 00-1 1v5H4a1 1 0 100 2h5v5a1 1 0 102 0v-5h5a1 1 0 100-2h-5V4a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Add Component
+                </Button>
+              )}
+
+              <div className="pt-5 flex justify-between">
+                <Button variant="outline" onClick={prevStep}>
+                  Back
+                </Button>
+                <Button onClick={nextStep}>Next</Button>
+              </div>
+
+              {error && (
+                <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-lg">
+                  {error.split("\n").map((err, i) => (
+                    <div key={i} className="mb-1">
+                      • {err}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+            {step === 4 && (
+          
+          <div className="space-y-6">
+             
+
+             
+
+         
+                <div className="bg-white rounded-lg">
+                  
                     <div>
-                      <label className="block text-sm font-medium text-gray-dark mb-2">
+                      <label className="block text-sm font-medium text-gray-dark mb-5">
                         Certifications
                       </label>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-2 ">
                         {[
-                          "Craftsmanship",
-                          "Small business",
-                          "Ethical labor",
-                          "Slow fashion",
-                          "Vegan",
-                          "Organic",
                           "Recycled",
+                          "Organic",
+                          "Vegan",
                           "Fair Trade",
-                          "GOTS",
+                          "Ethical",
+                          "Durable",
+                          "Small Business",
+                          "Slow Fashion",
+                          "Craftsmanship",
+                          "Minority Owned",
+                          "Other",
                         ].map((cert) => (
                           <button
                             key={cert}
@@ -1587,41 +1766,10 @@ export default function CreateProductPage() {
                       </div>
                     </div>
 
-                    <div className="flex justify-end space-x-3 pt-4">
-                      <Button
-                        variant="outline"
-                        type="button"
-                        onClick={() => setIsAddingComponent(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button type="button" onClick={handleAddComponent}>
-                        Add Component
-                      </Button>
-                    </div>
+    
                   </div>
-                </div>
-              ) : (
-                <Button
-                  variant="outline"
-                  onClick={() => setIsAddingComponent(true)}
-                  className="w-full justify-center py-3"
-                >
-                  <svg
-                    className="mr-2 h-5 w-5"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 3a1 1 0 00-1 1v5H4a1 1 0 100 2h5v5a1 1 0 102 0v-5h5a1 1 0 100-2h-5V4a1 1 0 00-1-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  Add Component
-                </Button>
-              )}
+             
+            
 
               <div className="pt-5 flex justify-between">
                 <Button

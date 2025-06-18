@@ -17,21 +17,18 @@ import { db } from "../../../lib/firebase";
 
 // Available certification options
 const CERTIFICATION_OPTIONS = [
-  "Small Business",
-  "Slow Fashion",
-  "Craftsmanship",
+ 
+  "Recycled",
   "Organic",
   "Vegan",
   "Fair Trade",
-  "Sustainable",
-  "Eco-Friendly",
-  "Handmade",
-  "Local Production",
-  "Recycled Materials",
-  "Carbon Neutral",
-  "B Corp Certified",
-  "Women-Owned",
-  "Minority-Owned",
+  "Ethical",
+  "Durable",
+   "Small Business",
+  "Slow Fashion",
+  "Craftsmanship",
+  "Minority Owned",
+  "Other"
 ];
 
 export default function CompanyProfile() {
