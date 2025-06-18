@@ -22,15 +22,17 @@ export default function EditComponentClient({ id, componentId }: { id: string; c
   const [deleteConfirm, setDeleteConfirm] = useState(false);
 
   const availableCertifications = [
-    'Craftsmanship',
-    'Small business',
-    'Ethical labor',
-    'Slow fashion',
-    'Vegan',
-    'Organic',
-    'Recycled',
-    'Fair Trade',
-    'GOTS'
+   "Recycled",
+  "Organic",
+  "Vegan",
+  "Fair Trade",
+  "Ethical",
+  "Durable",
+   "Small Business",
+  "Slow Fashion",
+  "Craftsmanship",
+  "Minority Owned",
+  "Other"
   ];
 
   useEffect(() => {

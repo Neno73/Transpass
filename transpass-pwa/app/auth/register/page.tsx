@@ -140,7 +140,13 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-white flex flex-col justify-center py-12 px-6 sm:px-6 lg:px-8">
       <div className="flex flex-col items-center justify-center mb-4">
-        <Image src="/logo.svg" alt="Transpass" width={80} height={80} />
+        <Image
+                    className="cursor-pointer"
+
+        src="/logo.svg" alt="Transpass" width={80} height={80}
+                    onClick={() => router.push("/")}
+
+        />
         <h2 className="text-3xl mt-2 font-bold text-primary">TransPass</h2>
       </div>
 

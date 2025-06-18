@@ -25,15 +25,17 @@ export default function AddComponentPage({ params }: { params: { id: string } })
 
   const [certifications, setCertifications] = useState<string[]>([]);
   const availableCertifications = [
-    'Craftsmanship',
-    'Small business',
-    'Ethical labor',
-    'Slow fashion',
-    'Vegan',
-    'Organic',
-    'Recycled',
-    'Fair Trade',
-    'GOTS'
+   "Recycled",
+  "Organic",
+  "Vegan",
+  "Fair Trade",
+  "Ethical",
+  "Durable",
+   "Small Business",
+  "Slow Fashion",
+  "Craftsmanship",
+  "Minority Owned",
+  "Other"
   ];
 
   useEffect(() => {

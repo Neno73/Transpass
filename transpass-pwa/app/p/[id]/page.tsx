@@ -10,6 +10,14 @@ import { db } from "../../../lib/firebase";
 import { getProduct, Product } from "../../../lib/products";
 import { BottomNav } from "../../../components/ui/Navigation";
 import { ArrowLeft } from "lucide-react";
+import ironingsvg from "../../../public/Ironing.svg";  
+import washingsvg from "../../../public/Washing.svg";  
+import dryingsvg from "../../../public/Drying.svg";  
+import bleachingsvg from "../../../public/Bleaching.svg";  
+import profCaresvg from "../../../public/Textile care.svg";  
+
+
+
 
 interface Company {
   id: string;
@@ -401,9 +409,10 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                               />
                             </div>
                           ) : (
-                            <div className="aspect-square bg-white rounded-lg flex items-center justify-center">
-                              <div className="text-primary">No Image</div>
-                            </div>
+                            <div className="hidden"></div>
+                            // <div className="aspect-square bg-white rounded-lg flex items-center justify-center">
+                            //   <div className="text-primary">No Image</div>
+                            // </div>
                           )}
                         </div>
 
@@ -474,21 +483,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                       {product.care.washing && (
                         <div className="flex items-start">
                           <div className="bg-primary-lightest p-2 rounded-full mr-3">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className="text-primary"
-                            >
-                              <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
-                              <circle cx="12" cy="13" r="3"></circle>
-                            </svg>
+                           <Image width={28} height={28} src={washingsvg} alt="washing image"></Image>
                           </div>
                           <div>
                             <h4 className="font-medium text-gray-dark">
@@ -504,29 +499,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                       {product.care.drying && (
                         <div className="flex items-start">
                           <div className="bg-primary-lightest p-2 rounded-full mr-3">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className="text-primary"
-                            >
-                              <rect
-                                x="3"
-                                y="3"
-                                width="18"
-                                height="18"
-                                rx="2"
-                                ry="2"
-                              ></rect>
-                              <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                              <path d="M20.8 14.2 13.4 18l-2.2-4.9-5.1 6.4"></path>
-                            </svg>
+                         <Image width={28} height={28} src={dryingsvg} alt="drying image"></Image>
                           </div>
                           <div>
                             <h4 className="font-medium text-gray-dark">
@@ -539,31 +512,17 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                         </div>
                       )}
 
-                      {product.care.dishwasher && (
+                      {product.care.bleaching && (
                         <div className="flex items-start">
                           <div className="bg-primary-lightest p-2 rounded-full mr-3">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className="text-primary"
-                            >
-                              <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline>
-                              <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path>
-                            </svg>
+                           <Image width={28} height={28} src={bleachingsvg} alt="bleaching image"></Image>
                           </div>
                           <div>
                             <h4 className="font-medium text-gray-dark">
-                              Dishwasher
+                              Bleaching
                             </h4>
                             <p className="text-sm text-gray">
-                              {product.care.dishwasher}
+                              {product.care.bleaching}
                             </p>
                           </div>
                         </div>
@@ -574,22 +533,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                       {product.care.ironing && (
                         <div className="flex items-start">
                           <div className="bg-primary-lightest p-2 rounded-full mr-3">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className="text-primary"
-                            >
-                              <path d="M12 11V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6c0-1.1.9-2 2-2h12"></path>
-                              <path d="m12 7 5-5 5 5"></path>
-                              <path d="M17 2v8"></path>
-                            </svg>
+                           <Image width={28} height={28} src={ironingsvg} alt="iron image"></Image>
                           </div>
                           <div>
                             <h4 className="font-medium text-gray-dark">
@@ -602,36 +546,17 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                         </div>
                       )}
 
-                      {product.care.bleaching && (
+                      {product.care.professionalCare && (
                         <div className="flex items-start">
                           <div className="bg-primary-lightest p-2 rounded-full mr-3">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className="text-primary"
-                            >
-                              <circle cx="12" cy="12" r="10"></circle>
-                              <line
-                                x1="4.93"
-                                y1="4.93"
-                                x2="19.07"
-                                y2="19.07"
-                              ></line>
-                            </svg>
+                           <Image width={28} height={28} src={profCaresvg} alt="professional care image"></Image>
                           </div>
                           <div>
                             <h4 className="font-medium text-gray-dark">
-                              Bleaching
+                              Professional Care
                             </h4>
                             <p className="text-sm text-gray">
-                              {product.care.bleaching}
+                              {product.care.professionalCare}
                             </p>
                           </div>
                         </div>
