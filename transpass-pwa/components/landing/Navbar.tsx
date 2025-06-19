@@ -75,7 +75,7 @@ export const Navbar = () => {
                 className="flex items-center hover:text-white transition-colors"
               >
                 How it works
-                <svg
+                {/* <svg
                   width="16"
                   height="16"
                   viewBox="0 0 24 24"
@@ -90,14 +90,14 @@ export const Navbar = () => {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
-                </svg>
+                </svg> */}
               </a>
               <a
                 href="#our-solutions"
                 className="flex items-center hover:text-white transition-colors"
               >
                 Our solutions
-                <svg
+                {/* <svg
                   width="16"
                   height="16"
                   viewBox="0 0 24 24"
@@ -112,14 +112,14 @@ export const Navbar = () => {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
-                </svg>
+                </svg> */}
               </a>
               <a
                 href="#why-use-transpass"
                 className="flex items-center hover:text-white transition-colors"
               >
                 Why should you use Transpass
-                <svg
+                {/* <svg
                   width="16"
                   height="16"
                   viewBox="0 0 24 24"
@@ -134,14 +134,14 @@ export const Navbar = () => {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
-                </svg>
+                </svg> */}
               </a>
               <a
                 href="#contact"
                 className="flex items-center hover:text-white transition-colors"
               >
                 Contact
-                <svg
+                {/* <svg
                   width="16"
                   height="16"
                   viewBox="0 0 24 24"
@@ -156,7 +156,7 @@ export const Navbar = () => {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
-                </svg>
+                </svg> */}
               </a>
             </div>
 

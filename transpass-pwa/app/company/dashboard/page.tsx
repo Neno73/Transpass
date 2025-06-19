@@ -118,6 +118,8 @@ export default function CompanyDashboard() {
     }
   };
 
+
+  
   return (
     <AuthProtection companyOnly>
       <div className="min-h-screen bg-primary-lightest pb-20 p-2">
@@ -166,13 +168,21 @@ export default function CompanyDashboard() {
           <main className="py-4 md:py-10 px-4">
             {/* User greeting with avatar - BIGGER VERSION */}
             <div className="flex items-center my-8 mb-12 z-10 relative">
-              <div className="h-20 w-20 rounded-full bg-primary-light flex items-center justify-center text-white font-medium text-2xl shadow-md">
-                {user?.email?.charAt(0).toUpperCase() || "U"}
-              </div>
+              <div className="h-20 w-20 rounded-full bg-primary-light flex items-center justify-center text-white font-medium text-2xl shadow-md overflow-hidden">
+  {userData?.image ? (
+    <img
+      src={userData.image}
+      alt="Profile"
+      className="h-full w-full object-cover"
+    />
+  ) : (
+    user?.email?.charAt(0).toUpperCase() || "U"
+  )}
+</div>
               <div className="ml-4">
                 <p className="text-gray text-lg">Hello,</p>
                 <p className="text-gray-dark font-semibold text-2xl">
-                  {user?.displayName || user?.email?.split("@")[0] || "User"}
+                  {userData?.displayName || user?.email?.split("@")[0] || "User"}
                 </p>
               </div>
             </div>

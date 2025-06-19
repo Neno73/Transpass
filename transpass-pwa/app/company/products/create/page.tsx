@@ -10,6 +10,7 @@ import AuthProtection from "../../../../components/AuthProtection";
 import { BottomNav } from "../../../../components/ui/Navigation";
 import { ArrowLeft, Upload, Check, X, Plus } from "lucide-react";
 import Image from "next/image";
+import { SketchPicker } from "react-color";
 
 export default function CreateProductPage() {
   const router = useRouter();
@@ -23,7 +24,7 @@ export default function CreateProductPage() {
     description: "",
     websiteLink: "",
     material: "",
-    composition:"",
+    composition: "",
     weight: 0,
     recyclable: false,
     manufacturer: "",
@@ -40,6 +41,9 @@ export default function CreateProductPage() {
     collection: "",
     websiteLink: "",
     SKU: "",
+    batchNumber: "",
+    batchSize: "",
+    batchProductionTime: "",
     colors: [] as { name: string; hex: string }[],
     selectedColor: "",
     colorPickerVisible: false,
@@ -151,6 +155,18 @@ export default function CreateProductPage() {
         errors.madeIn = "Country of origin is required";
       }
 
+      if (!productData.batchNumber.trim()) {
+        errors.batchNumber = "Batch number is required";
+      }
+
+      if (!productData.batchSize.trim()) {
+        errors.batchSize = "Batch size is required";
+      }
+
+      if (!productData.batchProductionTime.trim()) {
+        errors.batchProductionTime = "Batch production time is required";
+      }
+
       if (!productData.producedBy.trim()) {
         errors.producedBy = "Manufacturer information is required";
       }
@@ -228,6 +244,7 @@ export default function CreateProductPage() {
         colors: templateColors,
         sizes: templateSizes,
         collection: "Summer 2023",
+        websiteLink: "/",
         madeIn: "Italy",
         producedBy: "Quality Textile Co.",
         care: {
@@ -413,6 +430,18 @@ export default function CreateProductPage() {
       validationErrors.push("SKU is required");
     }
 
+    if (!productData.batchNumber) {
+      validationErrors.push("Batch number is required");
+    }
+
+    if (!productData.batchSize) {
+      validationErrors.push("Batch size is required");
+    }
+
+    if (!productData.batchProductionTime) {
+      validationErrors.push("Batch production time is required");
+    }
+
     if (validationErrors.length > 0) {
       setError(validationErrors.join("\n"));
       return;
@@ -433,6 +462,7 @@ export default function CreateProductPage() {
                 material: "Mixed",
                 composition: "Cotton, Polyester",
                 weight: 100,
+                websiteLink: productData.websiteLink,
                 recyclable: true,
                 manufacturer: productData.producedBy,
                 countryOfOrigin: productData.madeIn,
@@ -445,7 +475,11 @@ export default function CreateProductPage() {
         name: productData.name,
         description: productData.description,
         manufacturer: productData.producedBy || productData.manufacturer,
+        websiteLink: productData.websiteLink,
         model: productData.SKU || productData.model,
+        batchNumber: productData.batchNumber,
+        batchSize: productData.batchSize,
+        batchProductionTime: productData.batchProductionTime,
         category: productData.category,
         tags: productData.sizes, // Convert sizes to tags for now
         colors: productData.colors,
@@ -557,7 +591,7 @@ export default function CreateProductPage() {
                   step >= 3 ? "bg-primary" : "bg-primary-light"
                 }`}
               ></div>
-               <div
+              <div
                 className={`h-2 rounded-full w-full max-w-24 ${
                   step >= 4 ? "bg-primary" : "bg-primary-light"
                 }`}
@@ -736,6 +770,22 @@ export default function CreateProductPage() {
                   Recommended size is 400x400 px
                 </p>
               </div>
+              <div>
+                <label
+                  htmlFor="productWebsiteLink"
+                  className={`block text-sm font-medium text-gray-dark `}
+                >
+                  Website link
+                </label>
+                <input
+                  type="text"
+                  name="websiteLink"
+                  id="productWebsiteLink"
+                  value={productData.websiteLink}
+                  onChange={handleChange}
+                  className={getInputClass("websiteLink")}
+                />
+              </div>
 
               <div>
                 <label
@@ -815,7 +865,7 @@ export default function CreateProductPage() {
                   </div>
 
                   {productData.colorPickerVisible ? (
-                    <div className="bg-white p-3 border border-gray-300 rounded-lg">
+                    <div className=" p-3 border bg-white border-gray-300 rounded-lg">
                       <div className="grid grid-cols-6 gap-2 mb-2">
                         {[
                           "#FF0000",
@@ -855,23 +905,34 @@ export default function CreateProductPage() {
                           ></button>
                         ))}
                       </div>
-
-                      <div className="flex flex-col sm:flex-row gap-2">
+                      <div className="mt-4">
+                        <span className="text-white text-sm mb-1 block">
+                          Pick a custom color:
+                        </span>
+                        <SketchPicker
+                          color={productData.selectedColor || "#000000"}
+                          onChangeComplete={(color) => {
+                            setProductData({
+                              ...productData,
+                              selectedColor: color.hex,
+                            });
+                          }}
+                          presetColors={[]} // optional: hide built-in presets
+                        />
+                      </div>
+                      <div className="flex flex-col sm:flex-row gap-2 mt-4">
                         <div className="flex gap-2">
                           <Button
                             type="button"
                             size="sm"
                             onClick={() => {
                               if (productData.selectedColor) {
-                                // Check if this color is already in the array
                                 const colorExists = productData.colors.find(
                                   (c) => c.hex === productData.selectedColor
                                 );
                                 if (!colorExists) {
-                                  // Add new color
                                   const colorName =
                                     productData.tempColorName ||
-                                    // Generate a name if none provided
                                     {
                                       "#FF0000": "Red",
                                       "#FF9900": "Orange",
@@ -889,8 +950,8 @@ export default function CreateProductPage() {
                                       "#CC99FF": "Lavander",
                                       "#999999": "Gray",
                                       "#FFDDDD": "Powder Pink",
-                                    }[productData.selectedColor] ||
-                                    "Custom";
+                                     }[productData.selectedColor] || productData.selectedColor;
+
 
                                   setProductData({
                                     ...productData,
@@ -906,7 +967,6 @@ export default function CreateProductPage() {
                                     selectedColor: "",
                                   });
                                 } else {
-                                  // Color already exists, just close the picker
                                   setProductData({
                                     ...productData,
                                     colorPickerVisible: false,
@@ -1019,7 +1079,7 @@ export default function CreateProductPage() {
                     htmlFor="collection"
                     className="block text-sm font-medium text-gray-dark"
                   >
-                    Collection
+                    Season
                   </label>
                   <input
                     type="text"
@@ -1046,16 +1106,29 @@ export default function CreateProductPage() {
                     className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
                   >
                     <option value="">Select a category</option>
-                    <option value="Tops">Tops</option>
-                    <option value="Bottoms">Bottoms</option>
                     <option value="Dresses">Dresses</option>
-                    <option value="Outerwear">Outerwear</option>
-                    <option value="Activewear">Activewear</option>
+                    <option value="T-shirts & tops">T-shirts & tops</option>
+                    <option value="Trousers">Trousers</option>
+                    <option value="Jeans">Jeans</option>
+                    <option value="Shirts & Blouses">Shirts & Blouses</option>
+                    <option value="Jackets & Blazers">Jackets & Blazers</option>
+                    <option value="Swimwear">Swimwear</option>
+                    <option value="Sweatshirts & Hoodies">
+                      Sweatshirts & Hoodies
+                    </option>
+                    <option value="Skirts">Skirts</option>
+                    <option value="Knitwear & Cardigans">
+                      Knitwear & Cardigans
+                    </option>
+                    <option value="Sportswear">Sportswear</option>
+                    <option value="Shorts">Shorts</option>
+                    <option value="Jumpsuits">Jumpsuits</option>
+                    <option value="Coats">Coats</option>
                     <option value="Underwear">Underwear</option>
-                    <option value="Accessories">Accessories</option>
-                    <option value="Footwear">Footwear</option>
-                    <option value="Home">Home</option>
-                    <option value="Other">Other</option>
+                    <option value="Nightwear & Loungewear">
+                      Nightwear & Loungewear
+                    </option>
+                    <option value="Socks & Tights">Socks & Tights</option>
                   </select>
                 </div>
 
@@ -1166,6 +1239,84 @@ export default function CreateProductPage() {
                     onChange={handleChange}
                     className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
                   />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="batchNumber"
+                    className={`block text-sm font-medium ${
+                      hasError("batchNumber")
+                        ? "text-red-500"
+                        : "text-gray-dark"
+                    }`}
+                  >
+                    Batch Number <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="batchNumber"
+                    id="batchNumber"
+                    value={productData.batchNumber}
+                    onChange={handleChange}
+                    required
+                    className={getInputClass("batchNumber")}
+                  />
+                  {hasError("batchNumber") && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {getErrorMessage("batchNumber")}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label
+                    htmlFor="batchSize"
+                    className={`block text-sm font-medium ${
+                      hasError("batchSize") ? "text-red-500" : "text-gray-dark"
+                    }`}
+                  >
+                    Batch Size <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="batchSize"
+                    id="batchSize"
+                    value={productData.batchSize}
+                    onChange={handleChange}
+                    required
+                    className={getInputClass("batchSize")}
+                  />
+                  {hasError("batchSize") && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {getErrorMessage("batchSize")}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label
+                    htmlFor="batchProductionTime"
+                    className={`block text-sm font-medium ${
+                      hasError("batchProductionTime")
+                        ? "text-red-500"
+                        : "text-gray-dark"
+                    }`}
+                  >
+                    Batch Production Time{" "}
+                    <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="batchProductionTime"
+                    id="batchProductionTime"
+                    value={productData.batchProductionTime}
+                    onChange={handleChange}
+                    required
+                    className={getInputClass("batchProductionTime")}
+                  />
+                  {hasError("batchProductionTime") && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {getErrorMessage("batchProductionTime")}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -1452,8 +1603,6 @@ export default function CreateProductPage() {
                                 </div>
                               )}
                             </div>
-
-                           
                           </div>
 
                           <button
@@ -1496,7 +1645,8 @@ export default function CreateProductPage() {
                         htmlFor="componentName"
                         className="block text-sm font-medium text-gray-dark"
                       >
-                       Product Component <span className="text-red-500">*</span>
+                        Product Component{" "}
+                        <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -1569,15 +1719,13 @@ export default function CreateProductPage() {
                       </div>
                     </div>
 
-
-
                     <div className="grid grid-cols-2 gap-4">
-                       <div>
+                      <div>
                         <label
                           htmlFor="componentComposition"
                           className="block text-sm font-medium text-gray-dark"
                         >
-                          Composition 
+                          Component Composition
                         </label>
                         <input
                           type="text"
@@ -1589,23 +1737,23 @@ export default function CreateProductPage() {
                           placeholder="e.g., 100% Cotton, 50% Polyester, 50% Cotton"
                         />
                       </div>
-                    <div>
-                      <label
-                        htmlFor="componentLocation"
-                        className="block text-sm font-medium text-gray-dark"
-                      >
-                        Supplier
-                      </label>
-                      <input
-                        type="text"
-                        name="location"
-                        id="componentLocation"
-                        value={currentComponent.location}
-                        onChange={handleComponentChange}
-                        className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
-                        placeholder="e.g., Sleeve, Front, Inside"
-                      />
-                    </div>
+                      <div>
+                        <label
+                          htmlFor="componentLocation"
+                          className="block text-sm font-medium text-gray-dark"
+                        >
+                          Supplier name & location
+                        </label>
+                        <input
+                          type="text"
+                          name="location"
+                          id="componentLocation"
+                          value={currentComponent.location}
+                          onChange={handleComponentChange}
+                          className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
+                          placeholder=""
+                        />
+                      </div>
                     </div>
 
                     <div className="flex items-center">
@@ -1624,8 +1772,6 @@ export default function CreateProductPage() {
                         Recyclable
                       </label>
                     </div>
-
-                  
 
                     <div className="flex justify-end space-x-3 pt-4">
                       <Button
@@ -1681,95 +1827,84 @@ export default function CreateProductPage() {
               )}
             </div>
           )}
-            {step === 4 && (
-          
-          <div className="space-y-6">
-             
-
-             
-
-         
-                <div className="bg-white rounded-lg">
-                  
-                    <div>
-                      <label className="block text-sm font-medium text-gray-dark mb-5">
-                        Certifications
-                      </label>
-                      <div className="flex flex-wrap gap-2 ">
-                        {[
-                          "Recycled",
-                          "Organic",
-                          "Vegan",
-                          "Fair Trade",
-                          "Ethical",
-                          "Durable",
-                          "Small Business",
-                          "Slow Fashion",
-                          "Craftsmanship",
-                          "Minority Owned",
-                          "Other",
-                        ].map((cert) => (
-                          <button
-                            key={cert}
-                            type="button"
-                            onClick={() => handleToggleCertification(cert)}
-                            className={`rounded-full px-3 py-1 flex items-center gap-1 text-sm ${
-                              currentComponent.certifications.includes(cert)
-                                ? "bg-primary-light text-primary border-none"
-                                : "border border-gray-300 text-gray-dark hover:border-primary hover:text-primary"
-                            }`}
+          {step === 4 && (
+            <div className="space-y-6">
+              <div className="bg-white rounded-lg">
+                <div>
+                  <label className="block text-sm font-medium text-gray-dark mb-5">
+                    Certifications
+                  </label>
+                  <div className="flex flex-wrap gap-2 ">
+                    {[
+                      "Recycled",
+                      "Organic",
+                      "Vegan",
+                      "Fair Trade",
+                      "Ethical",
+                      "Durable",
+                      "Small Business",
+                      "Slow Fashion",
+                      "Craftsmanship",
+                      "Minority Owned",
+                      "Other",
+                    ].map((cert) => (
+                      <button
+                        key={cert}
+                        type="button"
+                        onClick={() => handleToggleCertification(cert)}
+                        className={`rounded-full px-3 py-1 flex items-center gap-1 text-sm ${
+                          currentComponent.certifications.includes(cert)
+                            ? "bg-primary-light text-primary border-none"
+                            : "border border-gray-300 text-gray-dark hover:border-primary hover:text-primary"
+                        }`}
+                      >
+                        {currentComponent.certifications.includes(cert) ? (
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
                           >
-                            {currentComponent.certifications.includes(cert) ? (
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <circle
-                                  cx="12"
-                                  cy="12"
-                                  r="10"
-                                  fill="currentColor"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                />
-                                <path
-                                  d="M8 12L11 15L16 9"
-                                  stroke="white"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            ) : (
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <circle
-                                  cx="12"
-                                  cy="12"
-                                  r="10"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                />
-                              </svg>
-                            )}
-                            {cert}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-    
+                            <circle
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              fill="currentColor"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            />
+                            <path
+                              d="M8 12L11 15L16 9"
+                              stroke="white"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <circle
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            />
+                          </svg>
+                        )}
+                        {cert}
+                      </button>
+                    ))}
                   </div>
-             
-            
+                </div>
+              </div>
 
               <div className="pt-5 flex justify-between">
                 <Button

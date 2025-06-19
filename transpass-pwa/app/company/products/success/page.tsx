@@ -38,8 +38,8 @@ function SuccessContent() {
         <div className="space-y-3 mt-10 max-w-sm mx-auto">
           <Button
             variant="secondary"
-            onClick={() => router.push(`/c/${productId}`)}
-            className="w-full py-2 text-sm"
+            onClick={() => router.push(`/p/${productId}`)}
+            className="w-full py-2 text-sm text-white hover:text-[#3D4EAD]"
           >
             View Product
           </Button>
