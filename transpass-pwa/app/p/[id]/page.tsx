@@ -10,11 +10,11 @@ import { db } from "../../../lib/firebase";
 import { getProduct, Product } from "../../../lib/products";
 import { BottomNav } from "../../../components/ui/Navigation";
 import { ArrowLeft } from "lucide-react";
-import ironingsvg from "../../../public/Ironing.svg";  
-import washingsvg from "../../../public/Washing.svg";  
-import dryingsvg from "../../../public/Drying.svg";  
-import bleachingsvg from "../../../public/Bleaching.svg";  
-import profCaresvg from "../../../public/Textile care.svg";  
+import ironingsvg from "../../../public/Ironing (1).svg";  
+import washingsvg from "../../../public/Washing (1).svg";  
+import dryingsvg from "../../../public/Drying (1).svg";  
+import bleachingsvg from "../../../public/Bleaching (1).svg";  
+import profCaresvg from "../../../public/Textile Care.svg";  
 
 
 
@@ -23,6 +23,7 @@ interface Company {
   id: string;
   name: string;
   description?: string;
+  websiteLink?:string;
   logo?: string;
   [key: string]: any;
 }
@@ -31,6 +32,7 @@ interface Component {
   id: string;
   name: string;
   description: string;
+  websiteLink?:string;
   material: string;
   origin: string;
   imageUrl?: string;
@@ -44,7 +46,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   const [activeComponent, setActiveComponent] = useState(0);
 
   const router = useRouter();
-  const productId = params.id;
+  const productId = params?.id;
 
   // Fetch product from Firestore
   useEffect(() => {
@@ -186,12 +188,14 @@ export default function ProductPage({ params }: { params: { id: string } }) {
               <div className="space-y-6">
                 <div className="aspect-w-16 aspect-h-9 relative bg-primary-lightest rounded-xl overflow-hidden h-64 flex items-center justify-center">
                   {product.imageUrl ? (
-                    <Image
+                  <Link target="_blank" href={product.websiteLink}>
+                  <Image
                       src={product.imageUrl}
                       alt={product.name}
                       fill
                       className="relative object-contain"
                     />
+                    </Link>
                   ) : (
                     <div className="text-primary flex flex-col items-center">
                       <svg
@@ -324,7 +328,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                               className="w-8 h-8 rounded-full border border-gray-300 cursor-pointer transition-transform hover:scale-110"
                               style={{ backgroundColor: color.hex }}
                               title={color.name}
-                            ></div>
+                            ><span className="pl-10">{color.name}</span></div>
                           ))}
                         </div>
                       </div>

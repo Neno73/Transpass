@@ -36,6 +36,8 @@ export default function CompanyProfile() {
   const [isLoading, setIsLoading] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const router = useRouter();
+  const [companyLogo, setCompanyLogo] = useState<string | null>(null);
+
   const [companyData, setCompanyData] = useState<any>(null);
   const [formData, setFormData] = useState({
     companyName: "",
@@ -48,6 +50,16 @@ export default function CompanyProfile() {
     certifications: [] as string[],
     image: "",
   });
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setCompanyLogo(reader.result as string); // base64 image
+    };
+    reader.readAsDataURL(file);
+  }
+};
 
   // Fetch company data
   useEffect(() => {
@@ -81,7 +93,7 @@ export default function CompanyProfile() {
         phone: companyData.phone || "",
         address: companyData.address || "",
         certifications: companyData.certifications || [],
-        image: companyData.image || "",
+        image: companyData?.image || "",
       });
     } else if (userData) {
       setFormData({
@@ -93,7 +105,7 @@ export default function CompanyProfile() {
         phone: "",
         address: "",
         certifications: [],
-        image: "",
+        image: companyData?.image || "",
       });
     }
   }, [userData, companyData]);
@@ -135,6 +147,8 @@ export default function CompanyProfile() {
         description: formData.description,
         phone: formData.phone,
         address: formData.address,
+        image: formData.image || "",
+      
       });
 
       await updateCompanyProfile(user, {
@@ -172,6 +186,12 @@ export default function CompanyProfile() {
       setIsLoading(false);
     }
   };
+  useEffect(() => {
+  if (formSubmitted) {
+    // Reload page to get fresh data and reflect changes
+    window.location.reload();
+  }
+}, [formSubmitted]);
 
   return (
     <AuthProtection companyOnly>
@@ -213,16 +233,50 @@ export default function CompanyProfile() {
           <div className="bg-white shadow-md rounded-2xl overflow-hidden">
             <div className="p-6 flex items-center border-b border-gray-100">
               <div className="w-16 h-16 bg-primary-lightest rounded-full flex items-center justify-center mr-4">
-                <span className="text-primary text-2xl font-bold">
-                  {companyData?.name?.charAt(0) || "C"}
-                </span>
+            <div className="flex flex-col pt-12 items-center">
+  {formData.image ? (
+    <img
+      src={formData.image}
+      alt="Company Logo"
+      className="w-16 h-16 object-cover rounded-full border border-gray-300"
+    />
+  ) : (
+    <span className="w-16 h-16 flex items-center justify-center text-primary text-2xl font-bold bg-gray-200 rounded-full">
+      {companyData?.name?.charAt(0) || "C"}
+    </span>
+  )}
+
+  {/* Upload input */}
+  <label className="mt-2 pl-2 cursor-pointer text-xs text-blue-600 hover:underline">
+    Upload Image
+    <input
+      type="file"
+      accept="image/*"
+      onChange={(e) => {
+        const file = e.target.files?.[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            // Update image in formData
+            setFormData((prev) => ({
+              ...prev,
+              image: reader.result as string,
+            }));
+          };
+          reader.readAsDataURL(file);
+        }
+      }}
+      className="hidden"
+    />
+  </label>
+</div>
               </div>
               <div>
                 <h2 className="text-xl font-bold text-gray-dark">
                   {companyData?.name || "Your Company"}
                 </h2>
                 <p className="text-gray text-sm mt-1">
-                  {companyData?.email || "company@example.com"}
+                  {companyData?.email || ""}
                 </p>
               </div>
             </div>
