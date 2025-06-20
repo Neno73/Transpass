@@ -950,8 +950,8 @@ export default function CreateProductPage() {
                                       "#CC99FF": "Lavander",
                                       "#999999": "Gray",
                                       "#FFDDDD": "Powder Pink",
-                                     }[productData.selectedColor] || productData.selectedColor;
-
+                                    }[productData.selectedColor] ||
+                                    productData.selectedColor;
 
                                   setProductData({
                                     ...productData,
@@ -1667,6 +1667,36 @@ export default function CreateProductPage() {
                       >
                         Description <span className="text-red-500">*</span>
                       </label>
+
+                      <select
+                        name="description"
+                        id="componentDescription"
+                        value={productData.description}
+                        onChange={handleComponentChange}
+                        className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
+                      >
+                        <option value="">Select a description</option>
+                        <option value="Yarn">Yarn</option>
+                        <option value="Fabric">Fabric</option>
+                        <option value="Lining">Lining</option>
+                        <option value="Interlining">Interlining</option>
+                        <option value="Label">Label</option>
+                        <option value="Zipper">Zipper</option>
+                        <option value="Button">Button</option>
+                        <option value="Snap">Snap</option>
+                        <option value="Cord">Cord</option>
+                        <option value="Thread">Thread</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+
+                    {/* <div>
+                      <label
+                        htmlFor="componentDescription"
+                        className="block text-sm font-medium text-gray-dark"
+                      >
+                        Description <span className="text-red-500">*</span>
+                      </label>
                       <textarea
                         id="componentDescription"
                         name="description"
@@ -1677,10 +1707,46 @@ export default function CreateProductPage() {
                         className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
                         placeholder="Describe this component"
                       />
-                    </div>
+                    </div> */}
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
+                        <label
+                          htmlFor="componentMaterial"
+                          className="block text-sm font-medium text-gray-dark"
+                        >
+                          Component type <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          name="material"
+                          id="componentMaterial"
+                          value={currentComponent.material}
+                          onChange={handleComponentChange}
+                          className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
+                        >
+                          <option value="">Select a component type</option>
+                          <option value="Body">Body</option>
+                          <option value="Sleeve">Sleeve</option>
+                          <option value="Front part">Front part</option>
+                          <option value="Back part">Back part</option>
+                          <option value="Upper part">Upper part</option>
+                          <option value="Lower part ">Lower part </option>
+                          <option value="Side part">Side part</option>
+                          <option value="Inner part">Inner part</option>
+                          <option value="Outer part">Outer part</option>
+                          <option value="Filling">Filling</option>
+                          <option value="Collar">Collar</option>
+
+                          <option value="Lapel">Lapel</option>
+                          <option value="Cuff">Cuff</option>
+                          <option value="Placket">Placket</option>
+                          <option value="Accessories">Accessories</option>
+                          <option value="Trimmings">Trimmings</option>
+                          <option value="Packaging">Packaging</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+                      {/* <div>
                         <label
                           htmlFor="componentMaterial"
                           className="block text-sm font-medium text-gray-dark"
@@ -1697,7 +1763,7 @@ export default function CreateProductPage() {
                           className="mt-1 block w-full border border-gray-300 rounded-lg  py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
                           placeholder="e.g., Cotton, Metal, Plastic"
                         />
-                      </div>
+                      </div> */}
 
                       <div>
                         <label
