@@ -65,7 +65,7 @@ export const ContactSection = () => {
           companyName: "",
         });
       } else {
-        setError("Failed to send email. Please try again.");
+        setError("Failed to send email. Please try again");
       }
     } catch (error) {
       setError("An error occurred while sending the email.");
