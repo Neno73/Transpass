@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -38,7 +38,13 @@ interface Component {
   imageUrl?: string;
 }
 
-export default function ProductPage({ params }: { params: { id: string } }) {
+
+interface ProductPageProps {
+  params: Promise<{ id: string }>; // params is a Promise now
+}
+export default function ProductPage({ params }: ProductPageProps) {
+  const { id: productId } = use(params); // ✅ unwrap the Promise
+
   const [product, setProduct] = useState<Product | null>(null);
   const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,7 +52,6 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   const [activeComponent, setActiveComponent] = useState(0);
 
   const router = useRouter();
-  const productId = params?.id;
 
   // Fetch product from Firestore
   useEffect(() => {
@@ -188,7 +193,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
               <div className="space-y-6">
                 <div className="aspect-w-16 aspect-h-9 relative bg-primary-lightest rounded-xl overflow-hidden h-64 flex items-center justify-center">
                   {product.imageUrl ? (
-                  <Link target="_blank" href={product.websiteLink}>
+                  <Link target="_blank" href={product.websiteLink ?? ''}>
                   <Image
                       src={product.imageUrl}
                       alt={product.name}
