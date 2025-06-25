@@ -84,8 +84,9 @@ export default function ProductDetailPage(props: { params: { id: string } }) {
   };
 
   const handleEditComponent = (index: number) => {
+    const comp = product.components[index];
     setEditingComponentIndex(index);
-    setEditingComponent({ ...product.components[index] });
+    setEditingComponent({ ...comp });
   };
 
   const handleDeleteComponent = (index: number) => {
@@ -106,6 +107,49 @@ export default function ProductDetailPage(props: { params: { id: string } }) {
   const switchTab = (tab: string) => {
     setActiveTab(tab);
   };
+
+  const handleSaveEditedComponent = async () => {
+    if (editingComponentIndex === null) return;
+
+    const updatedComponents = [...product.components];
+    updatedComponents[editingComponentIndex] = { ...editingComponent };
+
+    const updatedProduct = {
+      ...product,
+      components: updatedComponents,
+    };
+
+    try {
+      await updateProduct(product.id, updatedProduct);
+      setProduct(updatedProduct);
+      setEditData(updatedProduct); // update edit buffer
+      setEditingComponentIndex(null);
+      setEditingComponent(null);
+    } catch (err) {
+      console.error("Failed to save component:", err);
+      setError("Failed to update component");
+    }
+  };
+
+  const handleAddNewComponent = async () => {
+  const updatedComponents = [...product.components, editingComponent];
+
+  const updatedProduct = {
+    ...product,
+    components: updatedComponents,
+  };
+
+  try {
+    await updateProduct(product.id, updatedProduct);
+    setProduct(updatedProduct);
+    setEditData(updatedProduct);
+    setEditingComponent(null);
+  } catch (err) {
+    console.error("Failed to add component:", err);
+    setError("Failed to add new component");
+  }
+};
+
 
   if (loading) {
     return (
@@ -503,6 +547,195 @@ export default function ProductDetailPage(props: { params: { id: string } }) {
                             ))}
                         </tbody>
                       </table>
+                      {editingComponent && (
+                        <div className="mt-6 border-t pt-6">
+                          <h4 className="text-md font-semibold text-gray-dark mb-4">
+                            {editingComponentIndex !== null
+                              ? "Edit Component"
+                              : "Add Component"}
+                          </h4>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <input
+                              type="text"
+                              name="name"
+                              placeholder="Component Name"
+                              value={editingComponent.name}
+                              onChange={(e) =>
+                                setEditingComponent({
+                                  ...editingComponent,
+                                  name: e.target.value,
+                                })
+                              }
+                              className="border border-gray-300 rounded-md py-2 px-3"
+                            />
+
+                            <input
+                              type="text"
+                              name="material"
+                              placeholder="Material"
+                              value={editingComponent.material}
+                              onChange={(e) =>
+                                setEditingComponent({
+                                  ...editingComponent,
+                                  material: e.target.value,
+                                })
+                              }
+                              className="border border-gray-300 rounded-md py-2 px-3"
+                            />
+
+                            <input
+                              type="number"
+                              name="weight"
+                              placeholder="Weight"
+                              value={editingComponent.weight}
+                              onChange={(e) =>
+                                setEditingComponent({
+                                  ...editingComponent,
+                                  weight: parseFloat(e.target.value),
+                                })
+                              }
+                              className="border border-gray-300 rounded-md py-2 px-3"
+                            />
+
+                            <div className="flex items-center gap-2 mt-2">
+                              <input
+                                type="checkbox"
+                                name="recyclable"
+                                checked={editingComponent.recyclable}
+                                onChange={(e) =>
+                                  setEditingComponent({
+                                    ...editingComponent,
+                                    recyclable: e.target.checked,
+                                  })
+                                }
+                              />
+                              <label
+                                htmlFor="recyclable"
+                                className="text-sm text-gray-700"
+                              >
+                                Recyclable
+                              </label>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 flex gap-2">
+                            <button
+                              className="bg-primary text-white px-4 py-2 rounded"
+                              onClick={() => {
+                                if (editingComponentIndex !== null) {
+                                  handleSaveEditedComponent();
+                                } else {
+                                  handleAddNewComponent();
+                                }
+                              }}
+                            >
+                              {editingComponentIndex !== null
+                                ? "Save Changes"
+                                : "Add Component"}
+                            </button>
+                            <button
+                              className="text-gray-600 underline"
+                              onClick={() => {
+                                setEditingComponentIndex(null);
+                                setEditingComponent(null);
+                              }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {editingComponentIndex !== null && editingComponent && (
+                        <div className="mt-6 border-t pt-6">
+                          <h4 className="text-md font-semibold text-gray-dark mb-4">
+                            Edit Component
+                          </h4>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <input
+                              type="text"
+                              name="name"
+                              placeholder="Component Name"
+                              value={editingComponent.name}
+                              onChange={(e) =>
+                                setEditingComponent({
+                                  ...editingComponent,
+                                  name: e.target.value,
+                                })
+                              }
+                              className="border border-gray-300 rounded-md py-2 px-3"
+                            />
+
+                            <input
+                              type="text"
+                              name="material"
+                              placeholder="Material"
+                              value={editingComponent.material}
+                              onChange={(e) =>
+                                setEditingComponent({
+                                  ...editingComponent,
+                                  material: e.target.value,
+                                })
+                              }
+                              className="border border-gray-300 rounded-md py-2 px-3"
+                            />
+
+                            <input
+                              type="number"
+                              name="weight"
+                              placeholder="Weight"
+                              value={editingComponent.weight}
+                              onChange={(e) =>
+                                setEditingComponent({
+                                  ...editingComponent,
+                                  weight: parseFloat(e.target.value),
+                                })
+                              }
+                              className="border border-gray-300 rounded-md py-2 px-3"
+                            />
+
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                name="recyclable"
+                                checked={editingComponent.recyclable}
+                                onChange={(e) =>
+                                  setEditingComponent({
+                                    ...editingComponent,
+                                    recyclable: e.target.checked,
+                                  })
+                                }
+                              />
+                              <label
+                                htmlFor="recyclable"
+                                className="text-sm text-gray-700"
+                              >
+                                Recyclable
+                              </label>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 flex gap-2">
+                            <button
+                              className="bg-primary text-white px-4 py-2 rounded"
+                              onClick={handleSaveEditedComponent}
+                            >
+                              Save
+                            </button>
+                            <button
+                              className="text-gray-600 underline"
+                              onClick={() => {
+                                setEditingComponentIndex(null);
+                                setEditingComponent(null);
+                              }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ) : (

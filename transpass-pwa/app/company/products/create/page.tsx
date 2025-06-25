@@ -1671,7 +1671,7 @@ export default function CreateProductPage() {
                       <select
                         name="description"
                         id="componentDescription"
-                        value={productData.description}
+                        value={currentComponent.description}
                         onChange={handleComponentChange}
                         className="mt-1 block w-full border border-gray-300 rounded-lg py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary"
                       >
